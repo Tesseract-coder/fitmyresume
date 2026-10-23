@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fitmyresume",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    // Only API calls run the Worker; static files are served free and never count CPU time.
+    "run_worker_first": ["/api/*"]
+  },
+  "ai": { "binding": "AI" },
+  "ratelimits": [
+    // Burst protection per IP hash (10 LLM calls / minute).
+    { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+  ],
+  // Daily per-IP-hash quota. Create with `npx wrangler kv namespace create QUOTA_KV` and paste the id.
+  // Without it the app still works; only the burst limit and the global Workers AI allowance apply.
+  // "kv_namespaces": [{ "binding": "QUOTA_KV", "id": "<your-namespace-id>" }],
+  "vars": {
+    "DAILY_LIMIT": "15",
+    "ALLOWED_ORIGINS": "",
+    "MODEL_EXTRACT": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "MODEL_ANALYZE": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "MODEL_TAILOR": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  },
+  // Secrets (set with `npx wrangler secret put …`): TURNSTILE_SECRET, IP_HASH_SALT
+  "observability": { "enabled": true }
+}
