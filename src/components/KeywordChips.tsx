@@ -35,7 +35,7 @@ export function KeywordChips({ gap, onRemove }: { gap: GapAnalysis; onRemove?: (
                   <li key={i.canonical}>
                     <Badge tone={m.tone} className={i.importance === 'must' ? 'ring-1 ring-current/40' : ''}>
                       {i.surface}
-                      {i.resumeSurface && i.resumeSurface !== i.surface && <span className="opacity-75">← {i.resumeSurface}</span>}
+                      {i.resumeSurface && i.resumeSurface !== i.surface && <span className="font-normal">← {i.resumeSurface}</span>}
                       {i.importance === 'must' && <span className="sr-only">(must-have)</span>}
                       {i.importance === 'must' && <span aria-hidden="true" className="font-bold">*</span>}
                       {onRemove && (
