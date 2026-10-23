@@ -21,7 +21,9 @@ export type ViolationKind =
   | 'seniority'
   | 'ownership-inflation'
   | 'jd-copy'
-  | 'stuffing';
+  | 'stuffing'
+  /** A public profile naming the company being applied to (LinkedIn). */
+  | 'target-company';
 
 export interface Violation {
   kind: ViolationKind;

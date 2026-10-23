@@ -1,7 +1,8 @@
-import { ArrowUpRight, Check, Copy, GraduationCap, Mail, PartyPopper } from 'lucide-react';
-import { useId, useState } from 'react';
+import { ArrowUpRight, GraduationCap, Mail, PartyPopper } from 'lucide-react';
+import { useId } from 'react';
 import { useNavigate } from 'react-router';
 import { coachGaps, type CoachItem } from '@shared/coach';
+import { CopyButton } from '@/components/CopyButton';
 import { PageTitle } from '@/components/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,23 +18,11 @@ const IMPORTANCE = {
 } as const;
 
 function CopyQuote({ title, text }: { title: string; text: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text.replace(/^"|"$/g, ''));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* clipboard blocked: the text is visible and selectable */
-    }
-  };
   return (
     <figure className="rounded-lg bg-subtle p-3">
       <figcaption className="mb-1 flex items-center justify-between gap-2 text-xs font-medium text-muted">
         {title}
-        <Button variant="ghost" className="-my-2 min-h-9 px-2 text-xs" onClick={() => void copy()} aria-label={`Copy: ${title}`}>
-          {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />} {copied ? 'Copied' : 'Copy'}
-        </Button>
+        <CopyButton className="-my-2" text={text.replace(/^"|"$/g, '')} label={title} />
       </figcaption>
       <blockquote className="text-sm">{text}</blockquote>
     </figure>

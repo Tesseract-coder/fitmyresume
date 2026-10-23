@@ -33,6 +33,10 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Write my cover letter' }).click();
     await expect(page.getByRole('article', { name: 'Cover letter preview' })).toBeVisible();
     await audit(page, 'cover letter');
+    await page.getByRole('button', { name: 'LinkedIn profile' }).click();
+    await page.getByRole('button', { name: 'Write my LinkedIn profile' }).click();
+    await expect(page.getByTestId('linkedin-headline')).toBeVisible();
+    await audit(page, 'linkedin');
     await page.getByRole('button', { name: 'Export resume' }).click();
     await page.getByRole('button', { name: 'View history' }).click();
     await audit(page, 'history');

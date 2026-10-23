@@ -129,6 +129,17 @@ describe('worker: mock AI (dev / E2E)', () => {
     expect(((await quota.json()) as { error: { code: string } }).error.code).toBe('AI_QUOTA');
   });
 
+  it('serves LinkedIn profiles, including the adversarial scenario', async () => {
+    const profile = JSON.parse(await readSse(await app.fetch(post('/api/linkedin', tailorBody), { MOCK_AI: '1' })));
+    expect(profile.headline.startsWith('Senior QA Automation Engineer |')).toBe(true);
+    expect(profile.about.join(' ')).not.toContain('Globex');
+    const injected = JSON.parse(await readSse(await app.fetch(post('/api/linkedin', tailorBody, { 'x-fmr-mock': 'inject' }), { MOCK_AI: '1' })));
+    expect(injected.headline).toMatch(/^Principal Java Architect/);
+    expect(injected.about.at(-1)).toContain('Globex');
+    const bad = await app.fetch(post('/api/linkedin', { ...tailorBody, allowedTerms: 'everything' }), { MOCK_AI: '1' });
+    expect(bad.status).toBe(400);
+  });
+
   it('serves cover letters, including the adversarial scenario', async () => {
     const body = { ...tailorBody, tone: 'concise', motivation: 'I use Globex every week.' };
     const letter = JSON.parse(await readSse(await app.fetch(post('/api/cover-letter', body), { MOCK_AI: '1' })));

@@ -7,6 +7,7 @@ Tailor a resume to a job description, **honestly**. FitMyResume rewrites your su
 - Parsing, validation, scoring and export all run **in the browser**; nothing is stored on the server
 - **Cover letters** built from the same evidence and checked by the same validator
 - **Skills-gap coach**: what transfers, an honest learning plan, and cover-letter / interview phrasing for each gap
+- **LinkedIn sync helper**: headline, About, skills and experience text consistent with your tailored resume
 - Runs on the Cloudflare **free tier**, with an offline (no-AI) mode when the daily allowance runs out
 
 ---
@@ -62,20 +63,32 @@ For every true gap (a skill the job wants that your resume doesn't show), the co
 
 The coach is fully deterministic (no AI call). Its data lives in `shared/coach.ts` (`FAMILIES`, `RESOURCES`, `CERTIFICATIONS`), and a test checks that every entry refers to a real ontology term.
 
+## LinkedIn sync helper
+
+**Export → LinkedIn profile** writes profile text aimed at the target *kind* of role, kept consistent with your tailored resume:
+
+- **Headline** (≤ 220 characters): your real most recent title, your strongest evidenced skills in the job's wording, and your domain if your resume shows it. An inflated or unverifiable headline is replaced by the offline one.
+- **About** (≤ 2,600 characters): first-person prose checked sentence by sentence like the cover letter. Because a profile is public, any sentence naming the company you're applying to is removed ("Names the target company").
+- **Optional lines, written by code:** a *Core skills* line for recruiter search, the coach's *ramping up on …* line for skills you've marked as learning, and *I'm open to <role> opportunities*. They apply instantly, without another AI call.
+- **Skills:** up to 15 evidenced skills (standard names; aliases like K8s merged), the first three to pin as Top skills.
+- **Experience:** each role's tailored bullets, ready to paste into the matching LinkedIn position (≤ 2,000 characters each).
+
+Everything is copy-and-paste. Nothing is posted to LinkedIn for you. It's one extra AI call, and offline mode works too.
+
 ## Project layout
 
 ```
 src/                 React app
-  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, GapCoach, History
+  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, GapCoach, LinkedIn, History
   components/        UI pieces (score ring, diff, keyword chips, dialogs) + ui/ primitives
   lib/               API client (SSE + zod + one retry), store (zustand + IndexedDB), parse/, export/
 shared/              Pure TS used by both browser and Worker
   schema.ts          zod schemas: ResumeJSON, JDProfile, TailorResponse, API bodies
   ontology.json/.ts  Skill aliases → canonical names, plus "never alias" pairs
-  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts
-  offline/           Deterministic extract / analyze / tailor / cover letter (offline mode, dev mock)
+  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts linkedin.ts
+  offline/           Deterministic extract / analyze / tailor / cover letter / LinkedIn (offline mode, dev mock)
   prompts.ts         System prompts + JSON schemas for the LLM
-worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter
+worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter, /api/linkedin
 tests/               Vitest unit tests + fixtures (5 sample resumes as real PDF/DOCX)
 e2e/                 Playwright: desktop, Pixel 7, iPhone 14, + axe accessibility
 scripts/             make-icons.py, make-fixtures.ts, gen-ontology.py

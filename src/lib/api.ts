@@ -2,11 +2,13 @@ import { z } from 'zod';
 import {
   CoverLetterResponseSchema,
   ExtractedResumeSchema,
+  LinkedInResponseSchema,
   JDProfileSchema,
   TailorResponseSchema,
   type AnalyzeRequest,
   type ApiErrorCode,
   type CoverLetterRequest,
+  type LinkedInRequest,
   type ExtractRequest,
   type ProviderId,
   type TailorRequest,
@@ -112,6 +114,7 @@ export const api = {
   tailor: (body: Omit<TailorRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/tailor', body as Record<string, unknown>, TailorResponseSchema, opts),
   coverLetter: (body: Omit<CoverLetterRequest, 'mode' | 'byok'>, opts: CallOptions = {}) =>
     task('/api/cover-letter', body as Record<string, unknown>, CoverLetterResponseSchema, opts),
+  linkedin: (body: Omit<LinkedInRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/linkedin', body as Record<string, unknown>, LinkedInResponseSchema, opts),
   async health(): Promise<{ ai: boolean; mock: boolean; turnstile: boolean; byokDefaults: Record<string, string> } | undefined> {
     try {
       const res = await fetch('/api/health');

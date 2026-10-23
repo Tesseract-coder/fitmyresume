@@ -12,6 +12,7 @@ const Export = lazy(() => import('./screens/Export'));
 const HistoryScreen = lazy(() => import('./screens/History'));
 const CoverLetter = lazy(() => import('./screens/CoverLetter'));
 const GapCoach = lazy(() => import('./screens/GapCoach'));
+const LinkedIn = lazy(() => import('./screens/LinkedIn'));
 
 function Spinner() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/export" element={<Need when={!!s.baseline}><Export /></Need>} />
               <Route path="/cover-letter" element={<Need when={!!(s.baseline && s.jd)}><CoverLetter /></Need>} />
               <Route path="/gap-coach" element={<Need when={!!(s.baseline && s.jd)}><GapCoach /></Need>} />
+              <Route path="/linkedin" element={<Need when={!!(s.baseline && s.jd)}><LinkedIn /></Need>} />
               <Route path="/history" element={<HistoryScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

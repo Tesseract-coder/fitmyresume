@@ -1,4 +1,4 @@
-import { Check, Copy, FileDown, FileText, FileType, Mail } from 'lucide-react';
+import { Check, Copy, FileDown, FileText, FileType, Mail, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { renderPlainText } from '@shared/resume-text';
@@ -160,9 +160,14 @@ export default function Export() {
           Back
         </Button>
         {s.jd && (
-          <Button variant="outline" onClick={() => navigate('/cover-letter')}>
-            <Mail aria-hidden="true" /> Cover letter
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => navigate('/cover-letter')}>
+              <Mail aria-hidden="true" /> Cover letter
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/linkedin')}>
+              <UserRound aria-hidden="true" /> LinkedIn profile
+            </Button>
+          </>
         )}
         <Button variant="outline" onClick={() => navigate('/history')}>
           View history

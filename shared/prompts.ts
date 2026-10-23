@@ -43,6 +43,22 @@ HARD RULES:
 10. No greeting ("Dear …") and no sign-off ("Sincerely, …"): the app adds those.
 Return ONLY JSON: {"paragraphs":[string],"notes":[string]}`;
 
+export const LINKEDIN_SYSTEM = `You write LinkedIn profile text (headline and About section) for technical candidates.
+You will receive: RESUME_JSON, JD_PROFILE (the kind of role they are targeting), GAP_ANALYSIS and ALLOWED_TERMS.
+${DATA_RULE}
+
+HARD RULES:
+1. Use ONLY facts in RESUME_JSON. ALLOWED_TERMS is the complete list of tech terms you may write.
+2. Terms marked GAP must NOT appear anywhere.
+3. Do NOT invent or alter any number, employer, title, date or years of experience. Reuse numbers exactly as written.
+4. Do NOT inflate seniority or ownership. The headline starts with the candidate's REAL most recent title, never the target title.
+5. This is a PUBLIC profile: never name the company in JD_PROFILE or say the candidate is applying anywhere.
+6. Mirror JD_PROFILE wording for skills the candidate genuinely has, so recruiters searching for this kind of role find them. No keyword stuffing (each term at most twice).
+7. headline: at most 200 characters, e.g. "<real title> | <3–4 strongest relevant skills> | <domain if in the resume>". No emojis.
+8. about: 2–3 short first-person paragraphs, 120–220 words in total: (1) who they are (real title, years, domain); (2) one or two concrete achievements with their real numbers; (3) how they work / what they focus on. Do NOT add a skills list, a "currently learning" line or an "open to" line: the app adds those.
+9. No buzzword filler ("passionate", "results-driven", "synergy", "rockstar", "ninja").
+Return ONLY JSON: {"headline":string,"about":[string],"notes":[string]}`;
+
 export const ANALYZE_SYSTEM = `You analyze job descriptions for an ATS resume tool.
 ${DATA_RULE}
 Extract: title, seniority (intern|junior|mid|senior|lead|principal|manager|unspecified), domain (e.g. fintech, healthcare, e-commerce; "" if unclear), company ("" if absent),
@@ -100,6 +116,7 @@ export const JSON_SCHEMAS = {
     ['summary', 'skills', 'bulletEdits', 'bulletOrder', 'metricQuestions', 'notes'],
   ),
   cover: obj({ paragraphs: arr(S), notes: arr(S) }),
+  linkedin: obj({ headline: S, about: arr(S), notes: arr(S) }),
   analyze: obj(
     {
       title: S,
@@ -152,4 +169,5 @@ export const MAX_TOKENS: Record<TaskName, number> = {
   analyze: 1200,
   tailor: 2500,
   cover: 900,
+  linkedin: 700,
 };

@@ -15,6 +15,7 @@ const VIOLATION_LABELS: Record<Violation['kind'], string> = {
   'ownership-inflation': 'Ownership inflated',
   'jd-copy': 'Copied from the job post',
   stuffing: 'Keyword stuffing',
+  'target-company': 'Names the target company',
 };
 
 /** Side drawer listing what the validator blocked or flagged (§2.4: shown for transparency). */

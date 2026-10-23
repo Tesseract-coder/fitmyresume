@@ -1,11 +1,12 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import { ANALYZE_SYSTEM, COVER_SYSTEM, EXTRACT_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
+import { ANALYZE_SYSTEM, COVER_SYSTEM, EXTRACT_SYSTEM, LINKEDIN_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
 import {
   AnalyzeRequestSchema,
   CoverLetterRequestSchema,
   ExtractRequestSchema,
   LIMITS,
+  LinkedInRequestSchema,
   TailorRequestSchema,
   type ApiErrorCode,
   type CoverLetterRequest,
@@ -145,6 +146,16 @@ app.post('/api/cover-letter', async (c) => {
     c,
     { task: 'cover', system: COVER_SYSTEM, user: coverPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok },
     { task: 'cover', resume: body.resume, jd: body.jd, tone: body.tone, ...(body.motivation ? { motivation: body.motivation } : {}) },
+  );
+});
+
+app.post('/api/linkedin', async (c) => {
+  const body = await guard(c, LinkedInRequestSchema);
+  if (body instanceof Response) return body;
+  return run(
+    c,
+    { task: 'linkedin', system: LINKEDIN_SYSTEM, user: tailorPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok },
+    { task: 'linkedin', resume: body.resume, jd: body.jd },
   );
 });
 

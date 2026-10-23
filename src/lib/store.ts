@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Change } from '@shared/changes';
 import type { CoverLetterDraft } from '@shared/cover';
+import type { LinkedInDraft } from '@shared/linkedin';
 import type { TailorOutcome } from '@shared/pipeline';
 import type { JDProfile, ResumeJSON } from '@shared/schema';
 import type { TemplateId, ThemeId } from './export/theme';
@@ -33,6 +34,8 @@ export interface Session {
   coverLetter?: CoverLetterDraft;
   /** Gap skills the user says they're learning (skills-gap coach ↔ cover letter). */
   learningSkills?: string[];
+  /** LinkedIn headline/About for this resume + target role (cleared when either changes). */
+  linkedin?: LinkedInDraft;
   exportPrefs: { template: TemplateId; theme: ThemeId };
 }
 

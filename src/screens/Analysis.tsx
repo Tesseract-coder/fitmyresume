@@ -36,7 +36,7 @@ export default function Analysis() {
       outcome: undefined,
       accepted: [],
       userEdits: {},
-      coverLetter: undefined,
+      coverLetter: undefined, linkedin: undefined,
     });
   };
 

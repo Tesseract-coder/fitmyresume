@@ -293,6 +293,9 @@ export default function CoverLetter() {
         <Button variant="ghost" onClick={() => navigate(s.outcome ? '/review' : '/analysis')}>
           Back to review
         </Button>
+        <Button variant="outline" onClick={() => navigate('/linkedin')}>
+          LinkedIn profile
+        </Button>
         <Button variant="outline" onClick={() => navigate('/export')}>
           Export resume
         </Button>

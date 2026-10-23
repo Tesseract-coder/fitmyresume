@@ -313,6 +313,29 @@ export const CoverLetterRequestSchema = z.object({
 });
 export type CoverLetterRequest = z.input<typeof CoverLetterRequestSchema>;
 
+/* ------------------------------------------------------------------ */
+/* LinkedIn profile                                                    */
+/* ------------------------------------------------------------------ */
+
+export const LINKEDIN_LIMITS = { headline: 220, about: 2600 } as const;
+
+/** The model writes the headline and About prose; skills/learning/open-to lines are added by code. */
+export const LinkedInResponseSchema = z.object({
+  headline: str,
+  about: z.array(str).min(1).max(6),
+  notes: z.array(str).default([]),
+});
+export type LinkedInResponse = z.infer<typeof LinkedInResponseSchema>;
+
+export const LinkedInRequestSchema = z.object({
+  resume: ResumeSchema,
+  jd: JDProfileSchema,
+  gap: TailorRequestSchema.shape.gap,
+  allowedTerms: TailorRequestSchema.shape.allowedTerms,
+  ...common,
+});
+export type LinkedInRequest = z.input<typeof LinkedInRequestSchema>;
+
 export interface ApiError {
   error: { code: ApiErrorCode; message: string };
 }

@@ -1,5 +1,6 @@
 import { analyzeGap } from '../shared/gap';
 import { heuristicCoverLetter } from '../shared/offline/cover';
+import { heuristicLinkedIn } from '../shared/offline/linkedin';
 import { heuristicAnalyzeJd } from '../shared/offline/analyze';
 import { heuristicExtract } from '../shared/offline/extract';
 import { heuristicTailor } from '../shared/offline/tailor';
@@ -15,7 +16,8 @@ export type MockInput =
   | { task: 'extract'; resumeText: string }
   | { task: 'analyze'; jdText: string }
   | { task: 'tailor'; resume: ResumeJSON; jd: JDProfile }
-  | { task: 'cover'; resume: ResumeJSON; jd: JDProfile; tone: CoverTone; motivation?: string };
+  | { task: 'cover'; resume: ResumeJSON; jd: JDProfile; tone: CoverTone; motivation?: string }
+  | { task: 'linkedin'; resume: ResumeJSON; jd: JDProfile };
 
 export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario: string | null): Response {
   if (scenario === 'quota') throw new ProviderError('The free daily AI allowance is used up.', 429, 'AI_QUOTA');
@@ -27,6 +29,14 @@ export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario
     if (scenario === 'inject') {
       const fake = gapTermFor(input.resume, input.jd);
       res.paragraphs.splice(1, 0, `I have 9 years of hands-on ${fake} experience and led a team that improved deployment speed by 73%.`);
+    }
+    value = res;
+  } else if (input.task === 'linkedin') {
+    const res = heuristicLinkedIn(input.resume, input.jd, analyzeGap(input.resume, input.jd));
+    if (scenario === 'inject') {
+      const fake = gapTermFor(input.resume, input.jd);
+      res.headline = `Principal ${fake} Architect | ${res.headline}`;
+      res.about.push(`I have 12 years of ${fake} experience and I'm excited to bring it to ${input.jd.company ?? 'my next team'}.`);
     }
     value = res;
   } else {

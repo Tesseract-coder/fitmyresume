@@ -3,8 +3,9 @@ import type { EvidenceIndex } from '@shared/evidence';
 import { heuristicAnalyzeJd } from '@shared/offline/analyze';
 import { heuristicCoverLetter } from '@shared/offline/cover';
 import { heuristicExtract } from '@shared/offline/extract';
+import { heuristicLinkedIn } from '@shared/offline/linkedin';
 import { heuristicTailor } from '@shared/offline/tailor';
-import type { CoverLetterResponse, CoverTone, ExtractedResume, GapAnalysis, JDProfile, ResumeJSON, TailorResponse } from '@shared/schema';
+import type { CoverLetterResponse, CoverTone, ExtractedResume, GapAnalysis, JDProfile, LinkedInResponse, ResumeJSON, TailorResponse } from '@shared/schema';
 import { api, type CallOptions } from './api';
 
 export type Engine = 'ai' | 'offline';
@@ -45,6 +46,9 @@ export const engine = {
     if (mode === 'offline') return Promise.resolve(heuristicCoverLetter(resume, jd, gap, { tone: letter.tone, motivation }));
     return api.coverLetter({ resume, jd, ...grounding(gap, evidence), tone: letter.tone, ...(motivation ? { motivation } : {}) }, opts);
   },
+
+  linkedin: (resume: ResumeJSON, jd: JDProfile, gap: GapAnalysis, evidence: EvidenceIndex, mode: Engine, opts: CallOptions): Promise<LinkedInResponse> =>
+    mode === 'offline' ? Promise.resolve(heuristicLinkedIn(resume, jd, gap)) : api.linkedin({ resume, jd, ...grounding(gap, evidence) }, opts),
 };
 
 /** What the model is told it may and may not write, within the API's size caps. */
