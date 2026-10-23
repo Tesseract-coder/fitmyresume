@@ -137,7 +137,7 @@ describe('golden: locked fields', () => {
   });
 
   it('restores extras that were present in the original', () => {
-    const orig = { ...structuredClone(pythonQa), extras: [{ heading: 'Projects', items: ['Open-source Pytest plugin'] }] };
+    const orig: ResumeJSON = { ...structuredClone(pythonQa), extras: [{ heading: 'Projects', items: ['Open-source Pytest plugin'] }] };
     const p = structuredClone(orig);
     p.extras = [{ heading: 'Projects', items: ['Open-source Java plugin'] }];
     const res = validateTailoredResume(orig, p, buildEvidence(orig));

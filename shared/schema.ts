@@ -207,7 +207,7 @@ export const TailorResponseSchema = z.object({
     )
     .default([]),
   bulletOrder: z.array(z.object({ roleId: str, bulletIds: z.array(str) })).default([]),
-  headline: looseOptStr,
+  headline: looseOptStr.optional(),
   metricQuestions: z.array(z.object({ bulletId: str, question: str })).default([]),
   notes: z.array(str).default([]),
 });
