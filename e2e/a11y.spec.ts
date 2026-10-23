@@ -24,6 +24,12 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: /Continue to export/ }).click();
     await expect(page.getByRole('heading', { name: 'Export your resume' })).toBeVisible();
     await audit(page, 'export');
+    await page.getByRole('button', { name: 'Cover letter' }).click();
+    await page.getByRole('checkbox', { name: 'Java' }).check();
+    await page.getByRole('button', { name: 'Write my cover letter' }).click();
+    await expect(page.getByRole('article', { name: 'Cover letter preview' })).toBeVisible();
+    await audit(page, 'cover letter');
+    await page.getByRole('button', { name: 'Export resume' }).click();
     await page.getByRole('button', { name: 'View history' }).click();
     await audit(page, 'history');
   });

@@ -10,6 +10,7 @@ const Analysis = lazy(() => import('./screens/Analysis'));
 const Review = lazy(() => import('./screens/Review'));
 const Export = lazy(() => import('./screens/Export'));
 const HistoryScreen = lazy(() => import('./screens/History'));
+const CoverLetter = lazy(() => import('./screens/CoverLetter'));
 
 function Spinner() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
               <Route path="/analysis" element={<Need when={!!(s.baseline && s.jd)}><Analysis /></Need>} />
               <Route path="/review" element={<Need when={!!(s.baseline && s.jd && s.outcome)}><Review /></Need>} />
               <Route path="/export" element={<Need when={!!s.baseline}><Export /></Need>} />
+              <Route path="/cover-letter" element={<Need when={!!(s.baseline && s.jd)}><CoverLetter /></Need>} />
               <Route path="/history" element={<HistoryScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

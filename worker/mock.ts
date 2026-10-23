@@ -1,8 +1,9 @@
 import { analyzeGap } from '../shared/gap';
+import { heuristicCoverLetter } from '../shared/offline/cover';
 import { heuristicAnalyzeJd } from '../shared/offline/analyze';
 import { heuristicExtract } from '../shared/offline/extract';
 import { heuristicTailor } from '../shared/offline/tailor';
-import type { JDProfile, ResumeJSON } from '../shared/schema';
+import type { CoverTone, JDProfile, ResumeJSON } from '../shared/schema';
 import { ProviderError } from './providers';
 
 /**
@@ -13,14 +14,22 @@ import { ProviderError } from './providers';
 export type MockInput =
   | { task: 'extract'; resumeText: string }
   | { task: 'analyze'; jdText: string }
-  | { task: 'tailor'; resume: ResumeJSON; jd: JDProfile };
+  | { task: 'tailor'; resume: ResumeJSON; jd: JDProfile }
+  | { task: 'cover'; resume: ResumeJSON; jd: JDProfile; tone: CoverTone; motivation?: string };
 
 export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario: string | null): Response {
   if (scenario === 'quota') throw new ProviderError('The free daily AI allowance is used up.', 429, 'AI_QUOTA');
   let value: unknown;
   if (input.task === 'extract') value = heuristicExtract(input.resumeText);
   else if (input.task === 'analyze') value = heuristicAnalyzeJd(input.jdText);
-  else {
+  else if (input.task === 'cover') {
+    const res = heuristicCoverLetter(input.resume, input.jd, analyzeGap(input.resume, input.jd), { tone: input.tone, ...(input.motivation ? { motivation: input.motivation } : {}) });
+    if (scenario === 'inject') {
+      const fake = gapTermFor(input.resume, input.jd);
+      res.paragraphs.splice(1, 0, `I have 9 years of hands-on ${fake} experience and led a team that improved deployment speed by 73%.`);
+    }
+    value = res;
+  } else {
     const res = heuristicTailor(input.resume, input.jd, analyzeGap(input.resume, input.jd));
     if (scenario === 'inject') inject(res, input.resume, input.jd);
     value = res;
@@ -46,9 +55,12 @@ export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario
 }
 
 /** Simulate a misbehaving model: fabricated skills, a fake metric, a title change and inflation. */
+function gapTermFor(resume: ResumeJSON, jd: JDProfile): string {
+  return [...jd.mustHave, ...jd.niceToHave].find((t) => !JSON.stringify(resume).toLowerCase().includes(t.surface.toLowerCase()))?.surface ?? 'Rust';
+}
+
 function inject(res: ReturnType<typeof heuristicTailor>, resume: ResumeJSON, jd: JDProfile) {
-  const gapTerm = [...jd.mustHave, ...jd.niceToHave].find((t) => !JSON.stringify(resume).toLowerCase().includes(t.surface.toLowerCase()));
-  const fake = gapTerm?.surface ?? 'Rust';
+  const fake = gapTermFor(resume, jd);
   res.skills = [{ group: 'Core', items: [fake, ...(res.skills[0]?.items ?? [])] }, ...res.skills.slice(1)];
   const first = resume.experience[0]?.bullets[0];
   if (first) res.bulletEdits.push({ bulletId: first.id, newText: `${first.text.replace(/\.$/, '')}, improving release velocity by 73%.`, reason: 'impact', jdTermsUsed: [] });

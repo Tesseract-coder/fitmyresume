@@ -287,6 +287,32 @@ export const TailorRequestSchema = z.object({
 });
 export type TailorRequest = z.input<typeof TailorRequestSchema>;
 
+/* ------------------------------------------------------------------ */
+/* Cover letter                                                        */
+/* ------------------------------------------------------------------ */
+
+export const CoverToneSchema = z.enum(['professional', 'warm', 'concise']);
+export type CoverTone = z.infer<typeof CoverToneSchema>;
+
+/** The model writes only the body paragraphs; greeting, sign-off and contact come from locked fields. */
+export const CoverLetterResponseSchema = z.object({
+  paragraphs: z.array(str).min(1).max(6),
+  notes: z.array(str).default([]),
+});
+export type CoverLetterResponse = z.infer<typeof CoverLetterResponseSchema>;
+
+export const CoverLetterRequestSchema = z.object({
+  resume: ResumeSchema,
+  jd: JDProfileSchema,
+  gap: TailorRequestSchema.shape.gap,
+  allowedTerms: TailorRequestSchema.shape.allowedTerms,
+  tone: CoverToneSchema.default('professional'),
+  /** The candidate's own words on why this company/role: treated as evidence. */
+  motivation: z.string().max(600).optional(),
+  ...common,
+});
+export type CoverLetterRequest = z.input<typeof CoverLetterRequestSchema>;
+
 export interface ApiError {
   error: { code: ApiErrorCode; message: string };
 }

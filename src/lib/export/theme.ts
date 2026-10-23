@@ -48,11 +48,11 @@ export interface ExportPrefs {
   theme: ThemeId;
 }
 
-/** Firstname_Lastname_Resume_<Company>.<ext> */
-export function exportFileName(name: string, company: string | undefined, ext: string): string {
+/** Firstname_Lastname_Resume_<Company>.<ext> (or _Cover_Letter_) */
+export function exportFileName(name: string, company: string | undefined, ext: string, kind: 'Resume' | 'Cover_Letter' = 'Resume'): string {
   const clean = (s: string) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const person = parts.length > 1 ? `${clean(parts[0]!)}_${clean(parts.at(-1)!)}` : clean(parts[0] ?? 'My');
   const co = company ? clean(company) : '';
-  return `${person || 'My'}_Resume${co ? `_${co}` : ''}.${ext}`;
+  return `${person || 'My'}_${kind}${co ? `_${co}` : ''}.${ext}`;
 }

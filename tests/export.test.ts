@@ -6,6 +6,8 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { describe, expect, it } from 'vitest';
 import { heuristicExtract } from '../shared/offline/extract';
 import { SECTION_HEADINGS, renderPlainText } from '../shared/resume-text';
+import { DEFAULT_COVER_OPTIONS, composeCoverLetter, type CoverLetterDraft } from '../shared/cover';
+import { buildCoverDocx, buildCoverPdfDefinition } from '../src/lib/export/cover-doc';
 import { buildDocx } from '../src/lib/export/docx';
 import { PDF_FONT, PDF_FONT_FILES, buildPdfDefinition } from '../src/lib/export/pdf-doc';
 import { TEMPLATES, THEMES, exportFileName, type TemplateId, type ThemeId } from '../src/lib/export/theme';
@@ -106,5 +108,44 @@ describe('TXT export and file names', () => {
     expect(exportFileName('Priya Sharma', 'Globex Corp.', 'pdf')).toBe('Priya_Sharma_Resume_Globex_Corp.pdf');
     expect(exportFileName('José María López', undefined, 'docx')).toBe('Jose_Lopez_Resume.docx');
     expect(exportFileName('', '', 'txt')).toBe('My_Resume.txt');
+    expect(exportFileName('Priya Sharma', 'Globex', 'pdf', 'Cover_Letter')).toBe('Priya_Sharma_Cover_Letter_Globex.pdf');
+  });
+});
+
+describe('cover letter export', () => {
+  const draft: CoverLetterDraft = {
+    options: { ...DEFAULT_COVER_OPTIONS, hiringManager: 'Ms. Rivera', learning: ['Java'] },
+    paragraphs: ['I am applying for the Senior SDET role at Globex.', 'At Acme Fintech, I built a Pytest automation framework for 1,200 API test cases.', 'Thank you for your time and consideration.'],
+    violations: [],
+    notes: [],
+    engine: 'offline',
+    edited: false,
+    generatedAt: 0,
+  };
+  const letter = composeCoverLetter(pythonQa, draft, new Date('2026-10-23T12:00:00Z'));
+
+  it.each(Object.keys(TEMPLATES) as TemplateId[])('%s: PDF has a text layer in reading order on one page', async (template) => {
+    const buf: Buffer = await pdfmake.createPdf(buildCoverPdfDefinition(letter, { template, theme: 'navy' })).getBuffer();
+    const { text: raw, pages, multiColumn } = await pdfToText(new Uint8Array(buf), pdfjs as unknown as PdfJsLike);
+    const text = raw.replace(/\s+/g, ' '); // body paragraphs wrap across lines
+    expect(pages).toBe(1);
+    expect(multiColumn).toBe(false);
+    let last = -1;
+    for (const needle of ['Priya Sharma', 'Email: priya.sharma@example.com', 'October 23, 2026', 'Dear Ms. Rivera,', 'Senior SDET role at Globex', '1,200 API test cases', 'building my skills in Java', 'Thank you', 'Sincerely,']) {
+      const at = text.indexOf(needle);
+      expect(at, needle).toBeGreaterThan(last);
+      last = at;
+    }
+  });
+
+  it('DOCX keeps the same content as plain paragraphs, contact in the body', async () => {
+    const buf = await Packer.toBuffer(buildCoverDocx(letter, { template: 'classic', theme: 'forest' }));
+    const { value } = await mammoth.extractRawText({ buffer: buf });
+    expect(value).toContain('Phone: +91 98765 43210 | Email: priya.sharma@example.com');
+    expect(value).toContain('Dear Ms. Rivera,');
+    expect(value).toContain('At Acme Fintech, I built a Pytest automation framework for 1,200 API test cases. I am also actively building my skills in Java.');
+    expect(value.trimEnd().endsWith('Priya Sharma')).toBe(true);
+    const { value: html } = await mammoth.convertToHtml({ buffer: buf });
+    expect(html).not.toMatch(/<table|<li/);
   });
 });

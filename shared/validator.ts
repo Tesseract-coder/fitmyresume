@@ -3,7 +3,7 @@ import { categoryOf, hasEvidenceFor, jdExtras } from './gap';
 import { displayName, extractTerms, lookupCanonical, type ExtraTerm } from './ontology';
 import type { Bullet, Experience, GapAnalysis, GapItem, JDProfile, ResumeJSON, SkillGroup } from './schema';
 import { claimsText } from './resume-text';
-import { collapseSpace, extractNumberWords, extractNumbers, splitSentences, stem, tokenize } from './text';
+import { collapseSpace, escapeRegExp, extractNumberWords, extractNumbers, splitSentences, stem, tokenize } from './text';
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -123,6 +123,28 @@ export function validateTailoredResume(
   v.checkStuffing(resume);
 
   return { resume, violations: v.violations, autoFixes: v.autoFixes };
+}
+
+export interface ProseResult {
+  paragraphs: string[];
+  violations: Violation[];
+}
+
+/**
+ * Validate free prose (a cover letter body) against the same evidence: every sentence must pass the
+ * summary rules (terms, numbers, years, seniority, ownership, JD copying), or it is dropped.
+ * `allowPhrases` (hiring company, target job title) may be named verbatim: they describe the job,
+ * not the candidate, so they are masked before checking.
+ */
+export function validateProse(
+  original: ResumeJSON,
+  paragraphs: readonly string[],
+  evidence: EvidenceIndex,
+  ctx: ValidationContext = {},
+  allowPhrases: readonly string[] = [],
+): ProseResult {
+  const v = new Validator(original, evidence, ctx);
+  return { paragraphs: v.checkProse(paragraphs, allowPhrases), violations: v.violations };
 }
 
 class Validator {
@@ -301,6 +323,32 @@ class Validator {
       return restore();
     }
     resume.headline = h;
+  }
+
+  checkProse(paragraphs: readonly string[], allowPhrases: readonly string[]): string[] {
+    const phrases = allowPhrases.map(collapseSpace).filter((p) => p.length > 1).sort((a, b) => b.length - a.length);
+    const mask = (s: string) => phrases.reduce((t, p) => t.replace(new RegExp(escapeRegExp(p), 'gi'), 'this'), s);
+    const out: string[] = [];
+    paragraphs.forEach((para, i) => {
+      const kept: string[] = [];
+      for (const sentence of splitSentences(collapseSpace(para))) {
+        const masked = mask(sentence);
+        const problems = [...this.claimProblems(masked, { summaryLike: true }), ...this.yearsProblems(masked), ...this.seniorityProblems(masked, false)];
+        if (problems.length) {
+          for (const p of problems) this.log(p.kind, `paragraph ${i + 1}`, p.detail, sentence, 'removed', p.term);
+        } else kept.push(sentence);
+      }
+      if (kept.length) out.push(kept.join(' '));
+    });
+
+    const counts = new Map<string, number>();
+    for (const sentence of out.flatMap((p) => splitSentences(mask(p)))) {
+      for (const c of new Set(extractTerms(sentence, this.extras).map((t) => t.canonical))) counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    for (const [canonical, n] of counts) {
+      if (n > 3) this.log('stuffing', 'letter', `"${displayName(canonical)}" appears in ${n} sentences; more than 3 reads as keyword stuffing.`, displayName(canonical), 'warned', displayName(canonical));
+    }
+    return out;
   }
 
   private yearsProblems(text: string): Problem[] {

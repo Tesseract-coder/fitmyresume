@@ -1,9 +1,10 @@
 import { allowedTerms, gapPayload } from '@shared/gap';
 import type { EvidenceIndex } from '@shared/evidence';
 import { heuristicAnalyzeJd } from '@shared/offline/analyze';
+import { heuristicCoverLetter } from '@shared/offline/cover';
 import { heuristicExtract } from '@shared/offline/extract';
 import { heuristicTailor } from '@shared/offline/tailor';
-import type { ExtractedResume, GapAnalysis, JDProfile, ResumeJSON, TailorResponse } from '@shared/schema';
+import type { CoverLetterResponse, CoverTone, ExtractedResume, GapAnalysis, JDProfile, ResumeJSON, TailorResponse } from '@shared/schema';
 import { api, type CallOptions } from './api';
 
 export type Engine = 'ai' | 'offline';
@@ -28,17 +29,29 @@ export const engine = {
   analyzeJd: (jdText: string, mode: Engine, opts: CallOptions): Promise<JDProfile> =>
     mode === 'offline' ? Promise.resolve(heuristicAnalyzeJd(jdText)) : api.analyzeJd({ jdText }, opts),
 
-  tailor: (resume: ResumeJSON, jd: JDProfile, gap: GapAnalysis, evidence: EvidenceIndex, mode: Engine, opts: CallOptions): Promise<TailorResponse> => {
-    if (mode === 'offline') return Promise.resolve(heuristicTailor(resume, jd, gap));
-    const g = gapPayload(gap);
-    return api.tailor(
-      {
-        resume,
-        jd,
-        gap: { matched: g.matched.slice(0, 100), synonym: g.synonym.slice(0, 100), hidden: g.hidden.slice(0, 100), gap: g.gap.slice(0, 100) },
-        allowedTerms: allowedTerms(evidence, gap).filter((t) => t.length <= 80).slice(0, 400),
-      },
-      opts,
-    );
+  tailor: (resume: ResumeJSON, jd: JDProfile, gap: GapAnalysis, evidence: EvidenceIndex, mode: Engine, opts: CallOptions): Promise<TailorResponse> =>
+    mode === 'offline' ? Promise.resolve(heuristicTailor(resume, jd, gap)) : api.tailor({ resume, jd, ...grounding(gap, evidence) }, opts),
+
+  coverLetter: (
+    resume: ResumeJSON,
+    jd: JDProfile,
+    gap: GapAnalysis,
+    evidence: EvidenceIndex,
+    letter: { tone: CoverTone; motivation: string },
+    mode: Engine,
+    opts: CallOptions,
+  ): Promise<CoverLetterResponse> => {
+    const motivation = letter.motivation.trim();
+    if (mode === 'offline') return Promise.resolve(heuristicCoverLetter(resume, jd, gap, { tone: letter.tone, motivation }));
+    return api.coverLetter({ resume, jd, ...grounding(gap, evidence), tone: letter.tone, ...(motivation ? { motivation } : {}) }, opts);
   },
 };
+
+/** What the model is told it may and may not write, within the API's size caps. */
+function grounding(gap: GapAnalysis, evidence: EvidenceIndex) {
+  const g = gapPayload(gap);
+  return {
+    gap: { matched: g.matched.slice(0, 100), synonym: g.synonym.slice(0, 100), hidden: g.hidden.slice(0, 100), gap: g.gap.slice(0, 100) },
+    allowedTerms: allowedTerms(evidence, gap).filter((t) => t.length <= 80).slice(0, 400),
+  };
+}

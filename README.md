@@ -5,6 +5,7 @@ Tailor a resume to a job description, **honestly**. FitMyResume rewrites your su
 - Mobile-first, installable PWA (React + Vite + Tailwind)
 - Thin Cloudflare Worker (Hono) proxying Workers AI, or your own Anthropic / OpenAI / Gemini key
 - Parsing, validation, scoring and export all run **in the browser**; nothing is stored on the server
+- **Cover letters** built from the same evidence and checked by the same validator
 - Runs on the Cloudflare **free tier**, with an offline (no-AI) mode when the daily allowance runs out
 
 ---
@@ -37,20 +38,32 @@ Browser                                                   Worker (/api/*)       
 
 Blocked changes are shown to the user in a **Blocked changes** drawer. When a bullet would be stronger with a metric, the app *asks* — only numbers the user types enter the resume.
 
+## Cover letters
+
+From **Review** or **Export**, *Write a cover letter* drafts a letter for the same job. The rules mirror the resume:
+
+- The AI writes only the body. Greeting, date, sign-off, name and contact come from your locked resume fields.
+- Every sentence goes through `validateProse()` (the same checks as the summary): unevidenced skills, new numbers, changed years, inflated seniority or ownership, and text copied from the job post are **removed**, and listed under *Blocked sentences*. The job title and hiring company may be named because they describe the job, not you.
+- **Why this company?** is in your own words and is the only source of motivation. It adds words and numbers to the evidence, never technologies.
+- Gap skills are never claimed. You can tick a gap to add one code-written sentence, *"I am also actively building my skills in Java."*
+- You can edit the text by hand; your edits are kept as written. Downloads use your resume's template and colours (PDF / DOCX / TXT), named `Firstname_Lastname_Cover_Letter_<Company>.pdf`.
+
+A cover letter is one extra AI call (offline mode works too).
+
 ## Project layout
 
 ```
 src/                 React app
-  screens/           Home, Confirm, Analysis, Review, Export, History
+  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, History
   components/        UI pieces (score ring, diff, keyword chips, dialogs) + ui/ primitives
   lib/               API client (SSE + zod + one retry), store (zustand + IndexedDB), parse/, export/
 shared/              Pure TS used by both browser and Worker
   schema.ts          zod schemas: ResumeJSON, JDProfile, TailorResponse, API bodies
   ontology.json/.ts  Skill aliases → canonical names, plus "never alias" pairs
-  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts
-  offline/           Deterministic extract / analyze / tailor (offline mode, dev mock)
+  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts
+  offline/           Deterministic extract / analyze / tailor / cover letter (offline mode, dev mock)
   prompts.ts         System prompts + JSON schemas for the LLM
-worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor
+worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter
 tests/               Vitest unit tests + fixtures (5 sample resumes as real PDF/DOCX)
 e2e/                 Playwright: desktop, Pixel 7, iPhone 14, + axe accessibility
 scripts/             make-icons.py, make-fixtures.ts, gen-ontology.py
@@ -212,7 +225,7 @@ The validator doesn't care which model answered: every provider's output goes th
 ## Testing
 
 - **Unit (Vitest):** ontology (including "never alias" pairs like Java/JavaScript), gap analysis, validator golden tests (Python-only candidate + Java JD → no Java; fake "improved by 40%" → reverted; changed title/dates → restored; K8s ↔ Kubernetes; hidden skill promoted), score determinism, PDF/DOCX parsing fixtures, export text-layer order, Worker routes.
-- **E2E (Playwright):** the full happy path, metric questions, accept/reject, reload persistence, misbehaving-AI blocking, JSON retry, quota → offline / BYOK, file errors, history, and axe WCAG 2.1 AA scans of every screen in light and dark mode — on desktop Chrome, Pixel 7 and iPhone 14.
+- **E2E (Playwright):** the full happy path, cover letters (fabrication blocking, opt-in learning note, edits), metric questions, accept/reject, reload persistence, misbehaving-AI blocking, JSON retry, quota → offline / BYOK, file errors, history, and axe WCAG 2.1 AA scans of every screen in light and dark mode — on desktop Chrome, Pixel 7 and iPhone 14.
 
 ## Troubleshooting
 

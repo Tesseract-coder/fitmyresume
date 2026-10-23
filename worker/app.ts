@@ -1,7 +1,16 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import { ANALYZE_SYSTEM, EXTRACT_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
-import { AnalyzeRequestSchema, ExtractRequestSchema, LIMITS, TailorRequestSchema, type ApiErrorCode, type TailorRequest } from '../shared/schema';
+import { ANALYZE_SYSTEM, COVER_SYSTEM, EXTRACT_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
+import {
+  AnalyzeRequestSchema,
+  CoverLetterRequestSchema,
+  ExtractRequestSchema,
+  LIMITS,
+  TailorRequestSchema,
+  type ApiErrorCode,
+  type CoverLetterRequest,
+  type TailorRequest,
+} from '../shared/schema';
 import type { Env } from './env';
 import { mockResponse, type MockInput } from './mock';
 import { BYOK_DEFAULT_MODELS, ProviderError, callLlm, type LlmCall } from './providers';
@@ -129,12 +138,40 @@ app.post('/api/tailor', async (c) => {
   return run(c, { task: 'tailor', system: TAILOR_SYSTEM, user: tailorPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok }, { task: 'tailor', resume: body.resume, jd: body.jd });
 });
 
+app.post('/api/cover-letter', async (c) => {
+  const body = await guard(c, CoverLetterRequestSchema);
+  if (body instanceof Response) return body;
+  return run(
+    c,
+    { task: 'cover', system: COVER_SYSTEM, user: coverPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok },
+    { task: 'cover', resume: body.resume, jd: body.jd, tone: body.tone, ...(body.motivation ? { motivation: body.motivation } : {}) },
+  );
+});
+
 app.all('/api/*', (c) => fail(c, 404, 'BAD_REQUEST', 'Not found.'));
 
 /** The model never sees contact details or education: it doesn't need them, and they're locked anyway. */
 export function tailorPrompt(body: z.infer<typeof TailorRequestSchema> | TailorRequest): string {
-  const r = body.resume;
-  const resume = {
+  return [
+    `RESUME_JSON:\n${wrapData('RESUME_JSON', JSON.stringify(promptResume(body.resume)))}`,
+    `JD_PROFILE:\n${wrapData('JD_PROFILE', JSON.stringify(promptJd(body.jd)))}`,
+    `GAP_ANALYSIS (GAP terms must never appear):\n${JSON.stringify(body.gap)}`,
+    `ALLOWED_TERMS:\n${JSON.stringify(body.allowedTerms)}`,
+  ].join('\n\n');
+}
+
+/** Same data as tailoring, plus the tone and the candidate's own motivation (wrapped as data). */
+export function coverPrompt(body: z.infer<typeof CoverLetterRequestSchema> | CoverLetterRequest): string {
+  return [
+    tailorPrompt(body),
+    `JD_COMPANY: ${JSON.stringify(body.jd.company ?? '')}`,
+    `TONE: ${body.tone ?? 'professional'}`,
+    `MOTIVATION:\n${wrapData('MOTIVATION', body.motivation ?? '')}`,
+  ].join('\n\n');
+}
+
+function promptResume(r: z.infer<typeof TailorRequestSchema>['resume']) {
+  return {
     headline: r.headline,
     summary: r.summary,
     yearsOfExperience: r.yearsOfExperience,
@@ -149,11 +186,8 @@ export function tailorPrompt(body: z.infer<typeof TailorRequestSchema> | TailorR
     })),
     certifications: r.certifications.map((x) => x.name),
   };
-  const jd = { title: body.jd.title, seniority: body.jd.seniority, domain: body.jd.domain, mustHave: body.jd.mustHave, niceToHave: body.jd.niceToHave, responsibilities: body.jd.responsibilities };
-  return [
-    `RESUME_JSON:\n${wrapData('RESUME_JSON', JSON.stringify(resume))}`,
-    `JD_PROFILE:\n${wrapData('JD_PROFILE', JSON.stringify(jd))}`,
-    `GAP_ANALYSIS (GAP terms must never appear):\n${JSON.stringify(body.gap)}`,
-    `ALLOWED_TERMS:\n${JSON.stringify(body.allowedTerms)}`,
-  ].join('\n\n');
+}
+
+function promptJd(jd: z.infer<typeof TailorRequestSchema>['jd'] | TailorRequest['jd']) {
+  return { title: jd.title, seniority: jd.seniority, domain: jd.domain, mustHave: jd.mustHave, niceToHave: jd.niceToHave, responsibilities: jd.responsibilities };
 }

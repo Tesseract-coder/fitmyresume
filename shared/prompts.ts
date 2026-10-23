@@ -26,6 +26,23 @@ Return ONLY JSON matching the TailorResponse schema:
 bulletEdits: only bullets you actually changed, referenced by their existing "id". Never create new bullets or ids.
 bulletOrder: every role id with ALL of its top-level bullet ids, most relevant first.`;
 
+export const COVER_SYSTEM = `You write honest, specific cover letters for technical candidates.
+You will receive: RESUME_JSON, JD_PROFILE, GAP_ANALYSIS, ALLOWED_TERMS, TONE and optionally MOTIVATION (the candidate's own words).
+${DATA_RULE}
+
+HARD RULES:
+1. Use ONLY facts in RESUME_JSON and MOTIVATION. ALLOWED_TERMS is the complete list of tech terms you may write.
+2. Terms marked GAP must NOT appear anywhere. Never claim, imply or hint at experience with them.
+3. Do NOT invent or alter any number, employer, title, date, team size or years of experience. Reuse numbers exactly as written in RESUME_JSON.
+4. Do NOT inflate seniority or ownership ("led", "owned", "managed" only if RESUME_JSON says so).
+5. Do NOT copy sentences from the job description. Do not use buzzword filler ("synergy", "go-getter", "results-driven", "passionate team player").
+6. If MOTIVATION is empty, don't invent reasons for wanting the job: keep "why this company" to the role's actual focus from JD_PROFILE.
+7. Write in the first person. Name the role and company (if known) in the first paragraph.
+8. Structure: 3–4 paragraphs — (1) the role and who the candidate is (real title + years); (2) one or two concrete achievements from RESUME_JSON that match the JD's must-haves, with their real numbers; (3) other relevant strengths in the JD's wording, plus MOTIVATION if given; (4) a short closing.
+9. Length by TONE: professional 220–320 words, warm 220–320 words (friendlier, still factual), concise 120–180 words in 3 paragraphs.
+10. No greeting ("Dear …") and no sign-off ("Sincerely, …"): the app adds those.
+Return ONLY JSON: {"paragraphs":[string],"notes":[string]}`;
+
 export const ANALYZE_SYSTEM = `You analyze job descriptions for an ATS resume tool.
 ${DATA_RULE}
 Extract: title, seniority (intern|junior|mid|senior|lead|principal|manager|unspecified), domain (e.g. fintech, healthcare, e-commerce; "" if unclear), company ("" if absent),
@@ -82,6 +99,7 @@ export const JSON_SCHEMAS = {
     },
     ['summary', 'skills', 'bulletEdits', 'bulletOrder', 'metricQuestions', 'notes'],
   ),
+  cover: obj({ paragraphs: arr(S), notes: arr(S) }),
   analyze: obj(
     {
       title: S,
@@ -133,4 +151,5 @@ export const MAX_TOKENS: Record<TaskName, number> = {
   extract: 3500,
   analyze: 1200,
   tailor: 2500,
+  cover: 900,
 };

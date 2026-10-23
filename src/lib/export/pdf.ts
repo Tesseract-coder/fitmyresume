@@ -2,7 +2,9 @@ import regular from '@fontsource/carlito/files/carlito-latin-400-normal.woff?url
 import bold from '@fontsource/carlito/files/carlito-latin-700-normal.woff?url';
 import italic from '@fontsource/carlito/files/carlito-latin-400-italic.woff?url';
 import boldItalic from '@fontsource/carlito/files/carlito-latin-700-italic.woff?url';
+import type { ComposedLetter } from '@shared/cover';
 import type { ResumeJSON } from '@shared/schema';
+import { buildCoverPdfDefinition } from './cover-doc';
 import { PDF_FONT, PDF_FONT_FILES, buildPdfDefinition } from './pdf-doc';
 import type { ExportPrefs } from './theme';
 
@@ -43,6 +45,13 @@ function pdfmake(): Promise<PdfMakeBrowser> {
 }
 
 export async function exportPdf(resume: ResumeJSON, prefs: ExportPrefs): Promise<Blob> {
-  const pm = await pdfmake();
-  return pm.createPdf(buildPdfDefinition(resume, prefs)).getBlob();
+  return renderPdf(buildPdfDefinition(resume, prefs));
+}
+
+export async function exportCoverPdf(letter: ComposedLetter, prefs: ExportPrefs): Promise<Blob> {
+  return renderPdf(buildCoverPdfDefinition(letter, prefs));
+}
+
+async function renderPdf(def: Record<string, unknown>): Promise<Blob> {
+  return (await pdfmake()).createPdf(def).getBlob();
 }

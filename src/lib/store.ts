@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Change } from '@shared/changes';
+import type { CoverLetterDraft } from '@shared/cover';
 import type { TailorOutcome } from '@shared/pipeline';
 import type { JDProfile, ResumeJSON } from '@shared/schema';
 import type { TemplateId, ThemeId } from './export/theme';
@@ -28,6 +29,8 @@ export interface Session {
   userEdits: Record<string, string>;
   /** How the last step ran: AI or deterministic offline rules. */
   engine: 'ai' | 'offline';
+  /** Cover letter for this resume + job (cleared when either changes). */
+  coverLetter?: CoverLetterDraft;
   exportPrefs: { template: TemplateId; theme: ThemeId };
 }
 

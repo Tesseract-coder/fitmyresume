@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import {
+  CoverLetterResponseSchema,
   ExtractedResumeSchema,
   JDProfileSchema,
   TailorResponseSchema,
   type AnalyzeRequest,
   type ApiErrorCode,
+  type CoverLetterRequest,
   type ExtractRequest,
   type ProviderId,
   type TailorRequest,
@@ -108,6 +110,8 @@ export const api = {
   extract: (body: Omit<ExtractRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/extract', body, ExtractedResumeSchema, opts),
   analyzeJd: (body: Omit<AnalyzeRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/analyze-jd', body, JDProfileSchema, opts),
   tailor: (body: Omit<TailorRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/tailor', body as Record<string, unknown>, TailorResponseSchema, opts),
+  coverLetter: (body: Omit<CoverLetterRequest, 'mode' | 'byok'>, opts: CallOptions = {}) =>
+    task('/api/cover-letter', body as Record<string, unknown>, CoverLetterResponseSchema, opts),
   async health(): Promise<{ ai: boolean; mock: boolean; turnstile: boolean; byokDefaults: Record<string, string> } | undefined> {
     try {
       const res = await fetch('/api/health');
