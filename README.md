@@ -6,6 +6,7 @@ Tailor a resume to a job description, **honestly**. FitMyResume rewrites your su
 - Thin Cloudflare Worker (Hono) proxying Workers AI, or your own Anthropic / OpenAI / Gemini key
 - Parsing, validation, scoring and export all run **in the browser**; nothing is stored on the server
 - **Cover letters** built from the same evidence and checked by the same validator
+- **Skills-gap coach**: what transfers, an honest learning plan, and cover-letter / interview phrasing for each gap
 - Runs on the Cloudflare **free tier**, with an offline (no-AI) mode when the daily allowance runs out
 
 ---
@@ -50,17 +51,28 @@ From **Review** or **Export**, *Write a cover letter* drafts a letter for the sa
 
 A cover letter is one extra AI call (offline mode works too).
 
+## Skills-gap coach
+
+For every true gap (a skill the job wants that your resume doesn't show), the coach at **Analysis → How to close these gaps** or **Review → Open the skills-gap coach** gives you:
+
+- **What transfers:** skills you really have, from curated skill families (e.g. Selenium → Playwright, Jenkins → GitHub Actions, AWS → Azure) or, for programming languages, general-purpose languages you know. SQL never counts as a stand-in for Java.
+- **A learning plan:** official getting-started material (first-party links only), a bridge exercise built on your own work, an optional well-known certification, and a reminder to add the skill on the Confirm screen once it's real.
+- **Cover-letter phrasing:** for example *"I bring hands-on experience with Python, and I am actively ramping up on Java."* Turn on **I've started learning** and this line goes into your cover letter (the cover letter's checkboxes stay in sync). It never goes into your resume.
+- **An honest interview answer** that admits the gap first.
+
+The coach is fully deterministic (no AI call). Its data lives in `shared/coach.ts` (`FAMILIES`, `RESOURCES`, `CERTIFICATIONS`), and a test checks that every entry refers to a real ontology term.
+
 ## Project layout
 
 ```
 src/                 React app
-  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, History
+  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, GapCoach, History
   components/        UI pieces (score ring, diff, keyword chips, dialogs) + ui/ primitives
   lib/               API client (SSE + zod + one retry), store (zustand + IndexedDB), parse/, export/
 shared/              Pure TS used by both browser and Worker
   schema.ts          zod schemas: ResumeJSON, JDProfile, TailorResponse, API bodies
   ontology.json/.ts  Skill aliases → canonical names, plus "never alias" pairs
-  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts
+  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts
   offline/           Deterministic extract / analyze / tailor / cover letter (offline mode, dev mock)
   prompts.ts         System prompts + JSON schemas for the LLM
 worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter

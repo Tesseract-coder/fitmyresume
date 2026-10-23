@@ -20,7 +20,7 @@ test('writes an honest cover letter with the user’s own motivation and opt-in 
   await expect(letter).toContainText('Dear Ms. Rivera,');
   await expect(letter).toContainText('Senior SDET role at Globex');
   await expect(letter).toContainText('I use Globex every week and care about reliable payments.');
-  await expect(letter).toContainText('I am also actively building my skills in Java.');
+  await expect(letter).toContainText('I bring hands-on experience with Python, and I am actively ramping up on Java.');
   await expect(page.getByRole('button', { name: 'Blocked sentences (0)' })).toBeVisible();
 
   const txt = await download(page, 'Plain text (TXT)');

@@ -1,3 +1,4 @@
+import { learningLines } from './coach';
 import { buildEvidence, type EvidenceIndex } from './evidence';
 import { heuristicCoverLetter } from './offline/cover';
 import { contactLines } from './resume-text';
@@ -83,13 +84,6 @@ export function runCoverPipeline(args: {
   };
 }
 
-/** The only sentence that may name a gap skill: written by code, opt-in, and explicitly about learning. */
-export function learningSentence(terms: readonly string[]): string {
-  if (!terms.length) return '';
-  const list = terms.length > 1 ? `${terms.slice(0, -1).join(', ')} and ${terms.at(-1)}` : terms[0];
-  return `I am also actively building my skills in ${list}.`;
-}
-
 export interface ComposedLetter {
   name: string;
   contact: string[];
@@ -102,7 +96,9 @@ export interface ComposedLetter {
 /** Full letter for preview and export. Name and contact come from the locked resume fields. */
 export function composeCoverLetter(resume: ResumeJSON, draft: CoverLetterDraft, date = new Date()): ComposedLetter {
   const paragraphs = draft.paragraphs.map(collapseSpace).filter(Boolean);
-  const learning = learningSentence(draft.options.learning);
+  // The only sentences that may name a gap skill: code-written, opt-in, explicitly about learning,
+  // and naming only real transferable experience (see shared/coach.ts).
+  const learning = learningLines(draft.options.learning, buildEvidence(resume)).join(' ');
   if (learning) {
     // Before the closing paragraph, so the letter still ends on the thank-you.
     const at = Math.max(0, paragraphs.length - 2);

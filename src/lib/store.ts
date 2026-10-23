@@ -31,6 +31,8 @@ export interface Session {
   engine: 'ai' | 'offline';
   /** Cover letter for this resume + job (cleared when either changes). */
   coverLetter?: CoverLetterDraft;
+  /** Gap skills the user says they're learning (skills-gap coach ↔ cover letter). */
+  learningSkills?: string[];
   exportPrefs: { template: TemplateId; theme: ThemeId };
 }
 

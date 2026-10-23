@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, GraduationCap, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { runTailorPipeline } from '@shared/pipeline';
 import type { GapItem } from '@shared/schema';
@@ -100,7 +100,10 @@ export default function Analysis() {
                 </li>
               ))}
             </ul>
-            <p>They will never be added to your resume. The remaining gap is about skills, not wording — see the Skills Gap report after tailoring.</p>
+            <p>They will never be added to your resume. The remaining gap is about skills, not wording.</p>
+            <Button variant="outline" className="border-rose-300 bg-white/60 dark:border-rose-800 dark:bg-transparent" onClick={() => navigate('/gap-coach')}>
+              <GraduationCap aria-hidden="true" /> How to close these gaps
+            </Button>
           </div>
         </div>
       )}

@@ -1,7 +1,8 @@
 import { Check, Copy, FileDown, FileText, FileType, Pencil, ShieldX, Sparkles } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { DEFAULT_COVER_OPTIONS, composeCoverLetter, coverLetterText, learningSentence, runCoverPipeline, type CoverLetterOptions } from '@shared/cover';
+import { learningLines } from '@shared/coach';
+import { DEFAULT_COVER_OPTIONS, composeCoverLetter, coverLetterText, runCoverPipeline, type CoverLetterOptions } from '@shared/cover';
 import type { CoverTone } from '@shared/schema';
 import { EngineToggle, useAiStep } from '@/components/AiStep';
 import { BlockedChanges } from '@/components/BlockedChanges';
@@ -32,7 +33,7 @@ export default function CoverLetter() {
   const ids = { manager: useId(), motivation: useId() };
   const { evidence, gap, final } = useDerived(s);
   const draft = s.coverLetter;
-  const [options, setOptions] = useState<CoverLetterOptions>(() => draft?.options ?? DEFAULT_COVER_OPTIONS);
+  const [options, setOptions] = useState<CoverLetterOptions>(() => draft?.options ?? { ...DEFAULT_COVER_OPTIONS, learning: s.learningSkills ?? [] });
   const [editing, setEditing] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [busy, setBusy] = useState<Format>();
@@ -46,7 +47,12 @@ export default function CoverLetter() {
     const next = { ...options, ...patch };
     setOptions(next);
     // Learning terms and the greeting don't need the AI: apply them to the current letter immediately.
-    if (draft && ('learning' in patch || 'hiringManager' in patch)) update({ coverLetter: { ...draft, options: { ...draft.options, learning: next.learning, hiringManager: next.hiringManager } } });
+    if ('learning' in patch || 'hiringManager' in patch) {
+      update({
+        ...('learning' in patch ? { learningSkills: next.learning } : {}),
+        ...(draft ? { coverLetter: { ...draft, options: { ...draft.options, learning: next.learning, hiringManager: next.hiringManager } } } : {}),
+      });
+    }
   };
 
   const generate = () => {
@@ -159,7 +165,11 @@ export default function CoverLetter() {
             {gap.gap.length > 0 && (
               <fieldset>
                 <legend className="mb-1 text-xs font-medium text-muted">Mention that you're learning (tick only if true)</legend>
-                <p className="mb-2 text-xs text-muted">These skills are gaps, so they're never claimed as experience. Ticking one adds a single sentence, e.g. “{learningSentence([gap.gap[0]!.surface])}”</p>
+                <p className="mb-2 text-xs text-muted">These skills are gaps, so they're never claimed as experience. Ticking one adds a single sentence, e.g. “{learningLines([gap.gap[0]!.surface], evidence)[0]}”{' '}
+                    <button type="button" className="underline" onClick={() => navigate('/gap-coach')}>
+                      Skills-gap coach
+                    </button>
+                  </p>
                 <div className="flex flex-wrap gap-2">
                   {gap.gap.map((g) => {
                     const on = options.learning.includes(g.surface);
@@ -238,7 +248,7 @@ export default function CoverLetter() {
                           {p}
                         </p>
                       ))}
-                  {editing && options.learning.length > 0 && <p className="mt-2 text-xs text-slate-600">The “learning” sentence is added automatically and isn't editable here.</p>}
+                  {editing && options.learning.length > 0 && <p className="mt-2 text-xs text-slate-600">The “ramping up” sentence is added automatically and isn't editable here.</p>}
                   <p className="mt-5">{letter.signoff}</p>
                   <p className="mt-6 font-bold" style={{ color: theme.heading }}>
                     {letter.name}

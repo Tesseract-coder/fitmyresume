@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCheck, HelpCircle, Mail, ShieldX, Undo2 } from 'lucide-react';
+import { ArrowRight, CheckCheck, GraduationCap, HelpCircle, Mail, ShieldX, Undo2 } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { Change } from '@shared/changes';
@@ -239,6 +239,9 @@ export default function Review() {
                 </button>{' '}
                 screen — only if it's true. Otherwise, mention that you're learning it in your cover letter, not your resume.
               </p>
+              <Button variant="outline" className="mt-3" onClick={() => navigate('/gap-coach')}>
+                <GraduationCap aria-hidden="true" /> Open the skills-gap coach
+              </Button>
             </>
           )}
         </CardContent>

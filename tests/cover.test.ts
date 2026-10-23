@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_COVER_OPTIONS, composeCoverLetter, coverEvidence, coverLetterText, learningSentence, runCoverPipeline, type CoverLetterOptions } from '../shared/cover';
+import { DEFAULT_COVER_OPTIONS, composeCoverLetter, coverEvidence, coverLetterText, runCoverPipeline, type CoverLetterOptions } from '../shared/cover';
 import { buildEvidence } from '../shared/evidence';
 import { analyzeGap } from '../shared/gap';
 import { heuristicCoverLetter } from '../shared/offline/cover';
@@ -123,13 +123,12 @@ describe('offline cover letter', () => {
 });
 
 describe('composition', () => {
-  it('adds the opt-in learning sentence only for true gaps, before the closing', () => {
+  it('adds the opt-in "ramping up" sentence only for true gaps, before the closing', () => {
     const d = pipeline(['Opening.', 'Middle.', 'Closing.'], { learning: ['Java', 'Selenium'] });
     expect(d.options.learning).toEqual(['Java']); // Selenium is not a gap: it can't be "learning"
     const letter = composeCoverLetter(pythonQa, d, new Date('2026-10-23T12:00:00Z'));
-    expect(letter.paragraphs).toEqual(['Opening.', 'Middle. I am also actively building my skills in Java.', 'Closing.']);
-    expect(learningSentence(['Java', 'Spring Boot', 'Kafka'])).toBe('I am also actively building my skills in Java, Spring Boot and Kafka.');
-    expect(learningSentence([])).toBe('');
+    expect(letter.paragraphs).toEqual(['Opening.', 'Middle. I bring hands-on experience with Python, and I am actively ramping up on Java.', 'Closing.']);
+    expect(composeCoverLetter(pythonQa, { ...d, options: { ...d.options, learning: [] } }).paragraphs).toEqual(['Opening.', 'Middle.', 'Closing.']);
   });
 
   it('takes name and contact from the locked resume and greets the hiring manager', () => {

@@ -131,7 +131,7 @@ describe('cover letter export', () => {
     expect(pages).toBe(1);
     expect(multiColumn).toBe(false);
     let last = -1;
-    for (const needle of ['Priya Sharma', 'Email: priya.sharma@example.com', 'October 23, 2026', 'Dear Ms. Rivera,', 'Senior SDET role at Globex', '1,200 API test cases', 'building my skills in Java', 'Thank you', 'Sincerely,']) {
+    for (const needle of ['Priya Sharma', 'Email: priya.sharma@example.com', 'October 23, 2026', 'Dear Ms. Rivera,', 'Senior SDET role at Globex', '1,200 API test cases', 'ramping up on Java', 'Thank you', 'Sincerely,']) {
       const at = text.indexOf(needle);
       expect(at, needle).toBeGreaterThan(last);
       last = at;
@@ -143,7 +143,7 @@ describe('cover letter export', () => {
     const { value } = await mammoth.extractRawText({ buffer: buf });
     expect(value).toContain('Phone: +91 98765 43210 | Email: priya.sharma@example.com');
     expect(value).toContain('Dear Ms. Rivera,');
-    expect(value).toContain('At Acme Fintech, I built a Pytest automation framework for 1,200 API test cases. I am also actively building my skills in Java.');
+    expect(value).toContain('At Acme Fintech, I built a Pytest automation framework for 1,200 API test cases. I bring hands-on experience with Python, and I am actively ramping up on Java.');
     expect(value.trimEnd().endsWith('Priya Sharma')).toBe(true);
     const { value: html } = await mammoth.convertToHtml({ buffer: buf });
     expect(html).not.toMatch(/<table|<li/);
