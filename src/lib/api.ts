@@ -15,21 +15,11 @@ import {
 } from '@shared/schema';
 import { byokPayload } from './byok';
 import { SseTextDecoder, extractJson } from './sse';
+import { ApiError } from './api-error';
 import { getTurnstileToken } from './turnstile';
 
-export class ApiError extends Error {
-  constructor(
-    readonly code: ApiErrorCode | 'NETWORK' | 'INVALID_OUTPUT',
-    message: string,
-    readonly status = 0,
-  ) {
-    super(message);
-  }
-  /** Errors where offline mode or a BYOK key is the right next step. */
-  get isQuota() {
-    return this.code === 'AI_QUOTA' || this.code === 'DAILY_QUOTA';
-  }
-}
+export { ApiError };
+
 
 export interface CallOptions {
   onProgress?: (chars: number) => void;
@@ -87,13 +77,15 @@ function summarize(err: unknown): string {
 /**
  * Streamed call → JSON → zod. On a parse/schema failure, retry exactly once in the provider's
  * non-streaming JSON mode, telling the model what was wrong (§3: "one automatic retry").
+ * `first: 'json'` skips streaming for long verbatim outputs (extraction): unconstrained streams of
+ * that size came back as malformed JSON from Llama 3.3, so the stream attempt was wasted.
  */
-async function task<T extends z.ZodType>(path: string, body: Record<string, unknown>, schema: T, opts: CallOptions): Promise<z.infer<T>> {
+async function task<T extends z.ZodType>(path: string, body: Record<string, unknown>, schema: T, opts: CallOptions, first: 'stream' | 'json' = 'stream'): Promise<z.infer<T>> {
   const byok = byokPayload();
   const payload = { ...body, ...(byok ? { byok } : {}) };
   let firstError: unknown;
   try {
-    const text = await readText(await post(path, { ...payload, mode: 'stream' }, opts), opts);
+    const text = await readText(await post(path, { ...payload, mode: first }, opts), opts);
     return schema.parse(extractJson(text));
   } catch (err) {
     if (err instanceof ApiError || (err as Error).name === 'AbortError') throw err;
@@ -109,7 +101,7 @@ async function task<T extends z.ZodType>(path: string, body: Record<string, unkn
 }
 
 export const api = {
-  extract: (body: Omit<ExtractRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/extract', body, ExtractedResumeSchema, opts),
+  extract: (body: Omit<ExtractRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/extract', body, ExtractedResumeSchema, opts, 'json'),
   analyzeJd: (body: Omit<AnalyzeRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/analyze-jd', body, JDProfileSchema, opts),
   tailor: (body: Omit<TailorRequest, 'mode' | 'byok'>, opts: CallOptions = {}) => task('/api/tailor', body as Record<string, unknown>, TailorResponseSchema, opts),
   coverLetter: (body: Omit<CoverLetterRequest, 'mode' | 'byok'>, opts: CallOptions = {}) =>

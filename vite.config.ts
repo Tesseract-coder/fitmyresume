@@ -59,7 +59,7 @@ export default defineConfig({
     devApi(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: 'script-defer',
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-64.png', 'icons/favicon.svg'],
       manifest: {
         id: '/',

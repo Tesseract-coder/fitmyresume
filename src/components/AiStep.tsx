@@ -1,7 +1,9 @@
 import { AlertTriangle, CloudOff } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError, type CallOptions } from '@/lib/api';
-import { mockScenario, type Engine } from '@/lib/engine';
+import type { CallOptions } from '@/lib/api';
+import { ApiError } from '@/lib/api-error';
+import type { Engine } from '@/lib/engine';
+import { mockScenario } from '@/lib/mock-scenario';
 import { setPrefs, usePrefs } from '@/lib/prefs';
 import { Progress } from './Progress';
 import { QuotaDialog } from './QuotaDialog';

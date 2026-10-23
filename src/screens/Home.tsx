@@ -1,15 +1,13 @@
 import { FileText, RotateCcw, ShieldCheck, Upload } from 'lucide-react';
 import { useId, useRef, useState, type DragEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { reviewExtraction } from '@shared/extraction';
-import { LIMITS } from '@shared/schema';
+import { LIMITS } from '@shared/limits';
 import { EngineToggle, useAiStep } from '@/components/AiStep';
 import { PageTitle } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label, Textarea } from '@/components/ui/field';
 import { cn } from '@/lib/cn';
-import { engine } from '@/lib/engine';
 import { parseResumeFile } from '@/lib/parse';
 import { useStore } from '@/lib/store';
 
@@ -76,7 +74,9 @@ export function Home() {
       navigate('/confirm');
       return;
     }
-    void step.run('Reading your resume…', async (mode, opts) => {
+    void step.run('Reading your resume… this usually takes 15–30 seconds.', async (mode, opts) => {
+      // Loaded on demand: the AI client, schemas and skills ontology aren't needed to show this screen.
+      const [{ engine }, { reviewExtraction }] = await Promise.all([import('@/lib/engine'), import('@shared/extraction')]);
       const extracted = await engine.extract(resumeText, mode, opts);
       const review = reviewExtraction(resumeText, extracted);
       const now = Date.now();

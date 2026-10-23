@@ -10,18 +10,6 @@ import { api, type CallOptions } from './api';
 
 export type Engine = 'ai' | 'offline';
 
-/** E2E only: `?mock=<scenario>` on the dev server selects a mock-AI scenario for the whole tab. */
-export const mockScenario: string | undefined = (() => {
-  if (!import.meta.env.DEV) return undefined;
-  try {
-    const q = new URLSearchParams(location.search).get('mock');
-    if (q) sessionStorage.setItem('fmr.mock', q);
-    return sessionStorage.getItem('fmr.mock') ?? undefined;
-  } catch {
-    return undefined;
-  }
-})();
-
 /** Each step runs through the AI (Worker) or the deterministic offline rules; both feed the same validator. */
 export const engine = {
   extract: (resumeText: string, mode: Engine, opts: CallOptions): Promise<ExtractedResume> =>

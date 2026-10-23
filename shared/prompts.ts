@@ -18,7 +18,7 @@ HARD RULES:
 5. Do NOT inflate seniority or scope. Keep ownership verbs truthful ("contributed to" stays unless the text shows ownership).
 6. Mirror the JD's exact wording for skills the candidate genuinely has (see GAP_ANALYSIS.synonym and .hidden).
 7. Each bullet: starts with a strong action verb, 1–2 lines (≤ 30 words), follows Action + What + Tool + Result.
-8. Summary: 2–4 sentences, ≤ 60 words. Lead with the candidate's real title and years, then the top 3 JD-matching strengths, then one quantified result already in the resume.
+8. Summary: 2–4 sentences, ≤ 60 words. Lead with the candidate's real most recent title EXACTLY as written in RESUME_JSON (never add Senior, Lead, Principal or the JD's title) and their years, then the top 3 JD-matching strengths, then one quantified result already in the resume.
 9. Order bullets within each role by JD relevance. Order skill groups by JD priority.
 10. No first-person pronouns, no buzzword filler ("synergy", "go-getter", "results-driven"), no keyword stuffing (any term at most 3 times across the document).
 Return ONLY JSON matching the TailorResponse schema:

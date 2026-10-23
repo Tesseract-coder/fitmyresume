@@ -1,10 +1,7 @@
 import { z } from 'zod';
+import { LIMITS } from './limits';
 
-/** Input caps (§10). Enforced by the Worker and mirrored in the UI. */
-export const LIMITS = {
-  resumeChars: 20_000,
-  jdChars: 15_000,
-} as const;
+export { LIMITS };
 
 const str = z.string();
 const optStr = z.string().optional();
