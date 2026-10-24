@@ -3,6 +3,9 @@
   "name": "fitmyresume",
   "main": "worker/index.ts",
   "compatibility_date": "2025-10-01",
+  // Serve on fitmyresume.<subdomain>.workers.dev; no per-version preview URLs (extra public copies of the API).
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
@@ -14,9 +17,9 @@
     // Burst protection per IP hash (10 LLM calls / minute).
     { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
   ],
-  // Daily per-IP-hash quota. Create with `npx wrangler kv namespace create QUOTA_KV` and paste the id.
-  // Without it the app still works; only the burst limit and the global Workers AI allowance apply.
-  // "kv_namespaces": [{ "binding": "QUOTA_KV", "id": "<your-namespace-id>" }],
+  // Daily per-IP-hash quota (DAILY_LIMIT calls/day). `wrangler dev` uses a local copy, so testing
+  // doesn't spend production quota.
+  "kv_namespaces": [{ "binding": "QUOTA_KV", "id": "05c0bfca6f054b67963d09b769ea9a29" }],
   "vars": {
     "DAILY_LIMIT": "15",
     "ALLOWED_ORIGINS": "",
@@ -24,6 +27,6 @@
     "MODEL_ANALYZE": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "MODEL_TAILOR": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
   },
-  // Secrets (set with `npx wrangler secret put …`): TURNSTILE_SECRET, IP_HASH_SALT
+  // Secrets (set with `npx wrangler secret put …`): IP_HASH_SALT (set), TURNSTILE_SECRET (optional)
   "observability": { "enabled": true }
 }

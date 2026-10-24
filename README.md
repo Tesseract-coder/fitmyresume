@@ -156,7 +156,7 @@ First E2E run: `npx playwright install chromium webkit`. WebKit (the iPhone 14 p
 |---|---|---|
 | `AI` | Yes (for AI mode) | Workers AI. Already in `wrangler.jsonc`. |
 | `RATE_LIMITER` | No | Burst limit: 10 LLM calls / minute per IP hash. Already in `wrangler.jsonc`. |
-| `QUOTA_KV` | No | Daily per-IP quota counter. `npx wrangler kv namespace create QUOTA_KV`, then uncomment `kv_namespaces` in `wrangler.jsonc` and paste the id. |
+| `QUOTA_KV` | Recommended | Daily per-IP quota counter. Bound in `wrangler.jsonc` to this project's namespace; on another Cloudflare account, run `npx wrangler kv namespace create QUOTA_KV` and replace the `id`. |
 
 ### Frontend (build-time)
 
@@ -172,7 +172,7 @@ First E2E run: `npx playwright install chromium webkit`. WebKit (the iPhone 14 p
 npx wrangler login
 
 # Optional but recommended: daily quota counter
-npx wrangler kv namespace create QUOTA_KV      # paste the id into wrangler.jsonc (kv_namespaces)
+npx wrangler kv namespace create QUOTA_KV      # on a new account: replace the id in wrangler.jsonc (kv_namespaces)
 
 # Secrets
 npx wrangler secret put IP_HASH_SALT           # any long random string, e.g. `openssl rand -hex 32`
