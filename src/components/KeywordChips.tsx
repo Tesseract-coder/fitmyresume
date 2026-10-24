@@ -6,7 +6,7 @@ const META = {
   matched: { label: 'Matched', tone: 'matched', icon: Check, help: 'In your resume with the same wording.' },
   synonym: { label: 'Synonym', tone: 'synonym', icon: Repeat, help: "In your resume with different wording — we'll use the job's wording." },
   hidden: { label: 'Hidden evidence', tone: 'hidden', icon: EyeOff, help: "In your experience but not in Skills — we'll promote it." },
-  gap: { label: 'Gap', tone: 'gap', icon: X, help: "Not in your resume — never added. See the Skills Gap report." },
+  gap: { label: 'Gap', tone: 'gap', icon: X, help: 'Not in your resume — never added for you.' },
 } as const;
 
 export function KeywordChips({ gap, onRemove }: { gap: GapAnalysis; onRemove?: (item: GapItem) => void }) {

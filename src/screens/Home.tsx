@@ -93,6 +93,7 @@ export function Home() {
         baseline: undefined,
         jd: undefined,
         userFacts: [],
+        addedSkills: [],
         engine: mode,
         ...resetTailoring,
       });

@@ -34,6 +34,8 @@ export interface Session {
   coverLetter?: CoverLetterDraft;
   /** Gap skills the user says they're learning (skills-gap coach ↔ cover letter). */
   learningSkills?: string[];
+  /** Job keywords the user confirmed they have and added to Skills on the Analysis screen (for undo). */
+  addedSkills?: string[];
   /** LinkedIn headline/About for this resume + target role (cleared when either changes). */
   linkedin?: LinkedInDraft;
   exportPrefs: { template: TemplateId; theme: ThemeId };
