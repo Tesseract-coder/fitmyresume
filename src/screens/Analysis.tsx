@@ -1,9 +1,10 @@
-import { AlertTriangle, ArrowRight, GraduationCap, Plus, Sparkles, Undo2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, GraduationCap, Hash, Plus, Sparkles, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { runTailorPipeline } from '@shared/pipeline';
 import type { GapItem } from '@shared/schema';
 import { impliedBy } from '@shared/ontology';
+import { quantifiedShare } from '@shared/questions';
 import { addSkills, removeSkills } from '@shared/skills';
 import { EngineToggle, useAiStep } from '@/components/AiStep';
 import { KeywordChips } from '@/components/KeywordChips';
@@ -31,6 +32,7 @@ export default function Analysis() {
   if (!gap || !before || !evidence) return null;
 
   const mustGaps = gap.gap.filter((i) => i.importance === 'must');
+  const numbers = quantifiedShare(baseline);
   const added = s.addedSkills ?? [];
   const resetTailoring = { outcome: undefined, accepted: [], userEdits: {}, coverLetter: undefined, linkedin: undefined };
 
@@ -187,6 +189,23 @@ export default function Analysis() {
               <GraduationCap aria-hidden="true" /> How to close these gaps
             </Button>
           </div>
+        </div>
+      )}
+
+      {numbers.n < numbers.total && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle bg-subtle p-4">
+          <p className="flex items-start gap-2 text-sm">
+            <Hash className="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />
+            <span>
+              <b>
+                {numbers.n} of {numbers.total}
+              </b>{' '}
+              bullets include a number. Recruiters skim for them — add real ones in a couple of minutes.
+            </span>
+          </p>
+          <Button variant="outline" onClick={() => navigate('/strengthen')}>
+            Add real numbers
+          </Button>
         </div>
       )}
 

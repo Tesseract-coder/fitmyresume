@@ -119,6 +119,10 @@ export function extractNumberWords(s: string): string[] {
   return tokenize(s).filter((t) => NUMBER_WORDS.has(t));
 }
 
+/**
+ * Does the text state a quantity? Digits glued to letters are names, not numbers
+ * ("K8s", "EC2", "S3", "Log4j", "HTML5"); "10K", "40%", "1,200" and "2x" still count.
+ */
 export function hasNumber(s: string): boolean {
-  return /\d/.test(s) || extractNumberWords(s).length > 0;
+  return /(?<![\p{L}])\d/u.test(s) || extractNumberWords(s).length > 0;
 }

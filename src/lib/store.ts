@@ -36,6 +36,8 @@ export interface Session {
   learningSkills?: string[];
   /** Job keywords the user confirmed they have and added to Skills on the Analysis screen (for undo). */
   addedSkills?: string[];
+  /** Bullets the user added real numbers to on the Strengthen screen: id → original text (for undo). */
+  strengthened?: Record<string, string>;
   /** LinkedIn headline/About for this resume + target role (cleared when either changes). */
   linkedin?: LinkedInDraft;
   exportPrefs: { template: TemplateId; theme: ThemeId };

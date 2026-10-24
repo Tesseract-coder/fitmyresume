@@ -186,6 +186,13 @@ export default function Review() {
                 />
               ))}
             </ul>
+            <p className="mt-3 text-xs text-muted">
+              Want to go through every bullet without a number?{' '}
+              <button type="button" className="underline" onClick={() => navigate('/strengthen')}>
+                Add real numbers step by step
+              </button>{' '}
+              — it updates your resume itself, so you'll tailor again afterwards.
+            </p>
           </CardContent>
         </Card>
       )}

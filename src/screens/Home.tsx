@@ -94,6 +94,7 @@ export function Home() {
         jd: undefined,
         userFacts: [],
         addedSkills: [],
+        strengthened: {},
         engine: mode,
         ...resetTailoring,
       });

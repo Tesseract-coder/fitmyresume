@@ -6,6 +6,7 @@ Tailor a resume to a job description, **honestly**. FitMyResume rewrites your su
 - Thin Cloudflare Worker (Hono) proxying Workers AI, or your own Anthropic / OpenAI / Gemini key
 - Parsing, validation, scoring and export all run **in the browser**; nothing is stored on the server
 - **Cover letters** built from the same evidence and checked by the same validator
+- **Add real numbers**: a guided, one-bullet-at-a-time interview that works *your* metrics into bullets (never guessed)
 - **Skills-gap coach**: what transfers, an honest learning plan, and cover-letter / interview phrasing for each gap
 - **LinkedIn sync helper**: headline, About, skills and experience text consistent with your tailored resume
 - Runs on the Cloudflare **free tier**, with an offline (no-AI) mode when the daily allowance runs out
@@ -39,6 +40,14 @@ Browser                                                   Worker (/api/*)       
 | No seniority/ownership inflation, JD copying or keyword stuffing | Reverted or flagged |
 
 Blocked changes are shown to the user in a **Blocked changes** drawer. When a bullet would be stronger with a metric, the app *asks* — only numbers the user types enter the resume.
+
+## Adding real numbers
+
+**Analysis → Add real numbers** walks through the bullets that have no number, most job-relevant first. For each one it offers up to three questions that fit what the bullet says (how many test cases, how much faster, team size, release frequency, time saved…). You type the number; the app shows the finished bullet (e.g. *"…checkout flow, covering 120 test cases."*), which you can reword before saving. Nothing is saved without a number you typed, and every question can be skipped.
+
+Answers update your confirmed resume, so the numbers count as evidence everywhere. Any earlier tailoring is cleared, since it was built from the old bullets. A *Your changes* list with Undo stays on the screen. It's deterministic (no AI call). Only real quantities count toward the score: digits inside names like K8s, EC2 or Log4j don't.
+
+On the same screen, **Already have some of these?** lets you add job keywords you genuinely have (but your resume never mentioned) to your Skills, in the job's wording, with Undo. If a ticked skill implies another gap (RestAssured is a Java library), the app says so before adding.
 
 ## Cover letters
 
@@ -79,13 +88,13 @@ Everything is copy-and-paste. Nothing is posted to LinkedIn for you. It's one ex
 
 ```
 src/                 React app
-  screens/           Home, Confirm, Analysis, Review, Export, CoverLetter, GapCoach, LinkedIn, History
+  screens/           Home, Confirm, Analysis, Review, Strengthen, Export, CoverLetter, GapCoach, LinkedIn, History
   components/        UI pieces (score ring, diff, keyword chips, dialogs) + ui/ primitives
   lib/               API client (SSE + zod + one retry), store (zustand + IndexedDB), parse/, export/
 shared/              Pure TS used by both browser and Worker
   schema.ts          zod schemas: ResumeJSON, JDProfile, TailorResponse, API bodies
   ontology.json/.ts  Skill aliases → canonical names, plus "never alias" pairs
-  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts linkedin.ts
+  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts linkedin.ts questions.ts skills.ts
   offline/           Deterministic extract / analyze / tailor / cover letter / LinkedIn (offline mode, dev mock)
   prompts.ts         System prompts + JSON schemas for the LLM
 worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter, /api/linkedin

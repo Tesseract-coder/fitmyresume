@@ -23,6 +23,10 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByRole('heading', { name: 'Skills-gap coach' })).toBeVisible();
     await audit(page, 'gap coach');
     await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Add real numbers' }).click();
+    await expect(page.getByRole('heading', { name: 'Add real numbers' })).toBeVisible();
+    await audit(page, 'strengthen');
+    await page.getByRole('button', { name: 'Finish later' }).click();
     await tailor(page);
     await audit(page, 'review');
     await page.getByRole('button', { name: /Continue to export/ }).click();
