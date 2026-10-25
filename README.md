@@ -8,6 +8,7 @@ Tailor a resume to a job description, **honestly**. FitMyResume rewrites your su
 - **Cover letters** built from the same evidence and checked by the same validator
 - **Add real numbers**: a guided, one-bullet-at-a-time interview that works *your* metrics into bullets (never guessed)
 - **Skills-gap coach**: what transfers, an honest learning plan, and cover-letter / interview phrasing for each gap
+- **Interview prep**: ~10 likely questions with STAR outlines that use only your resume facts and ask you for the story
 - **LinkedIn sync helper**: headline, About, skills and experience text consistent with your tailored resume
 - Runs on the Cloudflare **free tier**, with an offline (no-AI) mode when the daily allowance runs out
 
@@ -72,6 +73,19 @@ For every true gap (a skill the job wants that your resume doesn't show), the co
 
 The coach is fully deterministic (no AI call). Its data lives in `shared/coach.ts` (`FAMILIES`, `RESOURCES`, `CERTIFICATIONS`), and a test checks that every entry refers to a real ontology term.
 
+## Interview prep
+
+**Export → Interview prep** lists the ~10 questions you're most likely to get for this job: an opener, behavioural questions built from your most relevant bullets, technical questions on the job's must-have skills, your must-have gaps, "why this company?" and questions to ask them. Each answer point is labelled by where it came from:
+
+| Label | Meaning |
+|---|---|
+| **From your resume** | A fact restated from a bullet (validated like all AI text) |
+| **Your turn** | A question for you. Situation and Task are *always* this: the app never writes your story |
+| **Honest answer** | The skills-gap coach's answer for a gap ("I haven't used Java professionally yet…") |
+| **Your words** | Your own cover-letter motivation |
+
+"Why they ask it" is written by code, never by the model. There are notes per question, a practice mode that hides the outlines, and TXT export. It's one AI call, and offline mode works too.
+
 ## LinkedIn sync helper
 
 **Export → LinkedIn profile** writes profile text aimed at the target *kind* of role, kept consistent with your tailored resume:
@@ -88,16 +102,16 @@ Everything is copy-and-paste. Nothing is posted to LinkedIn for you. It's one ex
 
 ```
 src/                 React app
-  screens/           Home, Confirm, Analysis, Review, Strengthen, Export, CoverLetter, GapCoach, LinkedIn, History
+  screens/           Home, Confirm, Analysis, Review, Strengthen, Export, CoverLetter, GapCoach, LinkedIn, Interview, History
   components/        UI pieces (score ring, diff, keyword chips, dialogs) + ui/ primitives
   lib/               API client (SSE + zod + one retry), store (zustand + IndexedDB), parse/, export/
 shared/              Pure TS used by both browser and Worker
   schema.ts          zod schemas: ResumeJSON, JDProfile, TailorResponse, API bodies
   ontology.json/.ts  Skill aliases → canonical names, plus "never alias" pairs
-  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts linkedin.ts questions.ts skills.ts
+  evidence.ts gap.ts validator.ts score.ts changes.ts pipeline.ts cover.ts coach.ts linkedin.ts interview.ts questions.ts skills.ts
   offline/           Deterministic extract / analyze / tailor / cover letter / LinkedIn (offline mode, dev mock)
   prompts.ts         System prompts + JSON schemas for the LLM
-worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter, /api/linkedin
+worker/              Hono app: /api/health, /api/extract, /api/analyze-jd, /api/tailor, /api/cover-letter, /api/linkedin, /api/interview
 tests/               Vitest unit tests + fixtures (5 sample resumes as real PDF/DOCX)
 e2e/                 Playwright: desktop, Pixel 7, iPhone 14, + axe accessibility
 scripts/             make-icons.py, make-fixtures.ts, gen-ontology.py

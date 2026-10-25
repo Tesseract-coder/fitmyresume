@@ -1,10 +1,11 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import { ANALYZE_SYSTEM, COVER_SYSTEM, EXTRACT_SYSTEM, LINKEDIN_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
+import { ANALYZE_SYSTEM, COVER_SYSTEM, EXTRACT_SYSTEM, INTERVIEW_SYSTEM, LINKEDIN_SYSTEM, TAILOR_SYSTEM, retryNote, wrapData } from '../shared/prompts';
 import {
   AnalyzeRequestSchema,
   CoverLetterRequestSchema,
   ExtractRequestSchema,
+  InterviewRequestSchema,
   LIMITS,
   LinkedInRequestSchema,
   TailorRequestSchema,
@@ -156,6 +157,16 @@ app.post('/api/linkedin', async (c) => {
     c,
     { task: 'linkedin', system: LINKEDIN_SYSTEM, user: tailorPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok },
     { task: 'linkedin', resume: body.resume, jd: body.jd },
+  );
+});
+
+app.post('/api/interview', async (c) => {
+  const body = await guard(c, InterviewRequestSchema);
+  if (body instanceof Response) return body;
+  return run(
+    c,
+    { task: 'interview', system: INTERVIEW_SYSTEM, user: tailorPrompt(body) + retryNote(body.retryReason), mode: body.mode, byok: body.byok },
+    { task: 'interview', resume: body.resume, jd: body.jd },
   );
 });
 

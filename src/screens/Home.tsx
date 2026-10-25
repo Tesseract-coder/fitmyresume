@@ -68,7 +68,7 @@ export function Home() {
   const start = () => {
     const resumeChanged = resumeText !== s.resumeText || !(s.extracted || s.baseline);
     const jdChanged = jdText !== s.jdText;
-    const resetTailoring = { outcome: undefined, accepted: [], userEdits: {}, coverLetter: undefined, linkedin: undefined };
+    const resetTailoring = { outcome: undefined, accepted: [], userEdits: {}, coverLetter: undefined, linkedin: undefined, interview: undefined };
     if (!resumeChanged) {
       update({ jdText, ...(jdChanged ? { jd: undefined, ...resetTailoring } : {}) });
       navigate('/confirm');

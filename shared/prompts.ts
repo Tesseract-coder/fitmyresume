@@ -59,6 +59,22 @@ HARD RULES:
 9. No buzzword filler ("passionate", "results-driven", "synergy", "rockstar", "ninja").
 Return ONLY JSON: {"headline":string,"about":[string],"notes":[string]}`;
 
+export const INTERVIEW_SYSTEM = `You prepare candidates for job interviews.
+You will receive: RESUME_JSON (with bullet ids), JD_PROFILE, GAP_ANALYSIS and ALLOWED_TERMS.
+${DATA_RULE}
+
+Write the 10 questions this interviewer is most likely to ask, with answer material built ONLY from RESUME_JSON.
+Mix: 1 "intro" (walk me through your background), 4 "behavioral" (each tied to a different resume bullet via bulletIds),
+2–3 "technical" (on must-have skills the candidate HAS), up to 2 "gap" (must-have skills marked GAP), 1 "motivation", 1 "closing" (questions to ask them).
+
+HARD RULES:
+1. You never know the candidate's story beyond RESUME_JSON. situationPrompt and taskPrompt are QUESTIONS to the candidate that help them recall it (e.g. "What was slow or painful before you started?"). Never state a situation as fact.
+2. action and result may only restate facts from the referenced bullets, in the first person. Do NOT invent numbers, tools, team sizes or outcomes. If the bullet has no result, write result as a question to the candidate ("What changed because of this?").
+3. talkingPoints: short first-person facts from RESUME_JSON (intro, technical) or questions the candidate could ask (closing). For "gap" questions leave talkingPoints empty: the app writes an honest answer.
+4. Use ALLOWED_TERMS only; never imply experience with GAP terms.
+5. Questions are what an interviewer would say, specific to this job (use JD_PROFILE responsibilities and must-haves). No numbering.
+Return ONLY JSON: {"questions":[{"category":"intro|behavioral|technical|gap|motivation|closing","question":string,"bulletIds":[string],"situationPrompt":string,"taskPrompt":string,"action":string,"result":string,"talkingPoints":[string]}],"notes":[string]}`;
+
 export const ANALYZE_SYSTEM = `You analyze job descriptions for an ATS resume tool.
 ${DATA_RULE}
 Extract: title, seniority (intern|junior|mid|senior|lead|principal|manager|unspecified), domain (e.g. fintech, healthcare, e-commerce; "" if unclear), company ("" if absent),
@@ -117,6 +133,15 @@ export const JSON_SCHEMAS = {
   ),
   cover: obj({ paragraphs: arr(S), notes: arr(S) }),
   linkedin: obj({ headline: S, about: arr(S), notes: arr(S) }),
+  interview: obj({
+    questions: arr(
+      obj(
+        { category: S, question: S, bulletIds: arr(S), situationPrompt: S, taskPrompt: S, action: S, result: S, talkingPoints: arr(S) },
+        ['category', 'question', 'bulletIds', 'talkingPoints'],
+      ),
+    ),
+    notes: arr(S),
+  }),
   analyze: obj(
     {
       title: S,
@@ -170,4 +195,5 @@ export const MAX_TOKENS: Record<TaskName, number> = {
   tailor: 2500,
   cover: 900,
   linkedin: 700,
+  interview: 1800,
 };

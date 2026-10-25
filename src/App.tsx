@@ -14,6 +14,7 @@ const CoverLetter = lazy(() => import('./screens/CoverLetter'));
 const GapCoach = lazy(() => import('./screens/GapCoach'));
 const LinkedIn = lazy(() => import('./screens/LinkedIn'));
 const Strengthen = lazy(() => import('./screens/Strengthen'));
+const Interview = lazy(() => import('./screens/Interview'));
 
 function Spinner() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="/gap-coach" element={<Need when={!!(s.baseline && s.jd)}><GapCoach /></Need>} />
               <Route path="/linkedin" element={<Need when={!!(s.baseline && s.jd)}><LinkedIn /></Need>} />
               <Route path="/strengthen" element={<Need when={!!(s.baseline && s.jd)}><Strengthen /></Need>} />
+              <Route path="/interview" element={<Need when={!!(s.baseline && s.jd)}><Interview /></Need>} />
               <Route path="/history" element={<HistoryScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

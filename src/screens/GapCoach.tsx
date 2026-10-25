@@ -180,6 +180,9 @@ export default function GapCoach() {
         <Button variant="ghost" onClick={() => navigate(s.outcome ? '/review' : '/analysis')}>
           Back
         </Button>
+        <Button variant="outline" onClick={() => navigate('/interview')}>
+          Interview prep
+        </Button>
         <Button variant="outline" onClick={() => navigate('/cover-letter')}>
           <Mail aria-hidden="true" /> Cover letter
         </Button>

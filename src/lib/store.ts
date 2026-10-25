@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Change } from '@shared/changes';
 import type { CoverLetterDraft } from '@shared/cover';
+import type { InterviewDraft } from '@shared/interview';
 import type { LinkedInDraft } from '@shared/linkedin';
 import type { TailorOutcome } from '@shared/pipeline';
 import type { JDProfile, ResumeJSON } from '@shared/schema';
@@ -40,6 +41,8 @@ export interface Session {
   strengthened?: Record<string, string>;
   /** LinkedIn headline/About for this resume + target role (cleared when either changes). */
   linkedin?: LinkedInDraft;
+  /** Interview prep for this resume + job (cleared when either changes). */
+  interview?: InterviewDraft;
   exportPrefs: { template: TemplateId; theme: ThemeId };
 }
 

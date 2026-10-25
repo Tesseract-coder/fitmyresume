@@ -120,7 +120,7 @@ export default function Confirm() {
   const confirm = () => {
     const baseline = clean(draft);
     const changed = !deepEqual(baseline, s.baseline);
-    update({ baseline, extracted: baseline, ...(changed ? { outcome: undefined, accepted: [], userEdits: {}, userFacts: [], coverLetter: undefined, linkedin: undefined } : {}) });
+    update({ baseline, extracted: baseline, ...(changed ? { outcome: undefined, accepted: [], userEdits: {}, userFacts: [], coverLetter: undefined, linkedin: undefined, interview: undefined } : {}) });
     if (s.jd) {
       navigate('/analysis');
       return;

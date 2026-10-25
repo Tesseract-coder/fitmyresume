@@ -1,4 +1,4 @@
-import { Check, Copy, FileDown, FileText, FileType, Mail, UserRound } from 'lucide-react';
+import { Check, Copy, FileDown, FileText, FileType, Mail, MessageSquareQuote, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { renderPlainText } from '@shared/resume-text';
@@ -166,6 +166,9 @@ export default function Export() {
             </Button>
             <Button variant="outline" onClick={() => navigate('/linkedin')}>
               <UserRound aria-hidden="true" /> LinkedIn profile
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/interview')}>
+              <MessageSquareQuote aria-hidden="true" /> Interview prep
             </Button>
           </>
         )}

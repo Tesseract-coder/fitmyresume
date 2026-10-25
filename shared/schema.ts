@@ -333,6 +333,40 @@ export const LinkedInRequestSchema = z.object({
 });
 export type LinkedInRequest = z.input<typeof LinkedInRequestSchema>;
 
+/* ------------------------------------------------------------------ */
+/* Interview prep                                                      */
+/* ------------------------------------------------------------------ */
+
+export const InterviewCategorySchema = z.enum(['intro', 'behavioral', 'technical', 'gap', 'motivation', 'closing']);
+export type InterviewCategory = z.infer<typeof InterviewCategorySchema>;
+
+/**
+ * The model proposes questions and answer material; Situation/Task are always *prompts* for the
+ * candidate (the app never writes their story), and Action/Result/talking points are validated.
+ */
+export const InterviewResponseSchema = z.object({
+  questions: z
+    .array(
+      z.object({
+        category: InterviewCategorySchema.catch('behavioral'),
+        question: str,
+        bulletIds: z.array(str).default([]),
+        situationPrompt: looseOptStr.optional(),
+        taskPrompt: looseOptStr.optional(),
+        action: looseOptStr.optional(),
+        result: looseOptStr.optional(),
+        talkingPoints: z.array(str).default([]),
+      }),
+    )
+    .min(1)
+    .max(15),
+  notes: z.array(str).default([]),
+});
+export type InterviewResponse = z.infer<typeof InterviewResponseSchema>;
+
+export const InterviewRequestSchema = LinkedInRequestSchema;
+export type InterviewRequest = LinkedInRequest;
+
 export interface ApiError {
   error: { code: ApiErrorCode; message: string };
 }

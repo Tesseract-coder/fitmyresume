@@ -1,5 +1,6 @@
 import { analyzeGap } from '../shared/gap';
 import { heuristicCoverLetter } from '../shared/offline/cover';
+import { heuristicInterview } from '../shared/offline/interview';
 import { heuristicLinkedIn } from '../shared/offline/linkedin';
 import { heuristicAnalyzeJd } from '../shared/offline/analyze';
 import { heuristicExtract } from '../shared/offline/extract';
@@ -17,7 +18,8 @@ export type MockInput =
   | { task: 'analyze'; jdText: string }
   | { task: 'tailor'; resume: ResumeJSON; jd: JDProfile }
   | { task: 'cover'; resume: ResumeJSON; jd: JDProfile; tone: CoverTone; motivation?: string }
-  | { task: 'linkedin'; resume: ResumeJSON; jd: JDProfile };
+  | { task: 'linkedin'; resume: ResumeJSON; jd: JDProfile }
+  | { task: 'interview'; resume: ResumeJSON; jd: JDProfile };
 
 export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario: string | null): Response {
   if (scenario === 'quota') throw new ProviderError('The free daily AI allowance is used up.', 429, 'AI_QUOTA');
@@ -29,6 +31,15 @@ export function mockResponse(input: MockInput, mode: 'stream' | 'json', scenario
     if (scenario === 'inject') {
       const fake = gapTermFor(input.resume, input.jd);
       res.paragraphs.splice(1, 0, `I have 9 years of hands-on ${fake} experience and led a team that improved deployment speed by 73%.`);
+    }
+    value = res;
+  } else if (input.task === 'interview') {
+    const res = heuristicInterview(input.resume, input.jd, analyzeGap(input.resume, input.jd));
+    if (scenario === 'inject') {
+      const fake = gapTermFor(input.resume, input.jd);
+      const story = res.questions.find((q) => q.category === 'behavioral');
+      if (story) Object.assign(story, { situationPrompt: 'The release pipeline failed 30% of nights.', action: `I led a team of 12 to rewrite everything in ${fake}.`, result: 'Costs fell by 73%.' });
+      res.questions[0]!.talkingPoints.push(`I have 9 years of ${fake} experience.`);
     }
     value = res;
   } else if (input.task === 'linkedin') {

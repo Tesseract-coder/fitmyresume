@@ -129,6 +129,14 @@ describe('worker: mock AI (dev / E2E)', () => {
     expect(((await quota.json()) as { error: { code: string } }).error.code).toBe('AI_QUOTA');
   });
 
+  it('serves interview prep, including the adversarial scenario', async () => {
+    const prep = JSON.parse(await readSse(await app.fetch(post('/api/interview', tailorBody), { MOCK_AI: '1' })));
+    expect(prep.questions[0].category).toBe('intro');
+    expect(prep.questions.some((q: { category: string }) => q.category === 'gap')).toBe(true);
+    const injected = JSON.parse(await readSse(await app.fetch(post('/api/interview', tailorBody, { 'x-fmr-mock': 'inject' }), { MOCK_AI: '1' })));
+    expect(injected.questions.find((q: { category: string }) => q.category === 'behavioral').action).toMatch(/^I led a team of 12/);
+  });
+
   it('serves LinkedIn profiles, including the adversarial scenario', async () => {
     const profile = JSON.parse(await readSse(await app.fetch(post('/api/linkedin', tailorBody), { MOCK_AI: '1' })));
     expect(profile.headline.startsWith('Senior QA Automation Engineer |')).toBe(true);

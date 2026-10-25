@@ -42,6 +42,11 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('linkedin-headline')).toBeVisible();
     await audit(page, 'linkedin');
     await page.getByRole('button', { name: 'Export resume' }).click();
+    await page.getByRole('button', { name: 'Interview prep' }).click();
+    await page.getByRole('button', { name: 'Prepare my interview' }).click();
+    await expect(page.getByRole('heading', { name: 'Walk me through your background.' })).toBeVisible();
+    await audit(page, 'interview');
+    await page.getByRole('button', { name: 'Export resume' }).click();
     await page.getByRole('button', { name: 'View history' }).click();
     await audit(page, 'history');
   });

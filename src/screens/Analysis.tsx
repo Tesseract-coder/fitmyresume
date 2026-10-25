@@ -34,7 +34,7 @@ export default function Analysis() {
   const mustGaps = gap.gap.filter((i) => i.importance === 'must');
   const numbers = quantifiedShare(baseline);
   const added = s.addedSkills ?? [];
-  const resetTailoring = { outcome: undefined, accepted: [], userEdits: {}, coverLetter: undefined, linkedin: undefined };
+  const resetTailoring = { outcome: undefined, accepted: [], userEdits: {}, coverLetter: undefined, linkedin: undefined, interview: undefined };
 
   /** The user confirms they really have these skills: add them to Skills, exactly as the job words them. */
   const addPicked = () => {

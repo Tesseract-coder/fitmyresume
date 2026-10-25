@@ -76,7 +76,9 @@ export function runLinkedInPipeline(args: {
   const hv = validateProse(baseline, h1.texts, evidence, ctx);
   const headlineViolations = [...h1.violations, ...hv.violations.map((v) => ({ ...v, path: 'headline' }))];
   let headline = collapseSpace(response.headline);
-  if (!hv.paragraphs.length || hv.paragraphs[0] !== headline || headline.length > LINKEDIN_LIMITS.headline) {
+  // Judge by violations, not text equality: validation normalises dashes and quotes ("–" → "-").
+  const blocked = headlineViolations.some((v) => v.action !== 'warned');
+  if (!headline || blocked || headline.length > LINKEDIN_LIMITS.headline) {
     const alt = validateProse(baseline, [fallback().headline], evidence, ctx).paragraphs[0] ?? '';
     if (headline && alt !== headline) notes.push("The AI's headline couldn't be fully verified against your resume, so this is the offline headline instead.");
     headline = alt;

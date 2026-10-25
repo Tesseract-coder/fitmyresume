@@ -55,6 +55,13 @@ describe('LinkedIn validation', () => {
     expect(d.violations.filter((v) => v.path === 'headline').length).toBeGreaterThan(0);
   });
 
+  it('keeps a valid headline with typographic dashes and apostrophes as written', () => {
+    const headline = 'Senior QA Automation Engineer – Test automation · Selenium · Python’s Pytest';
+    const d = pipeline({ headline, about: ['I enjoy building reliable test suites.'], notes: [] });
+    expect(d.headline).toBe(headline);
+    expect(d.notes).toEqual([]);
+  });
+
   it('a headline over 220 characters falls back to the offline one', () => {
     const d = pipeline({ headline: `Senior QA Automation Engineer | ${'Python · '.repeat(30)}`, about: ['I enjoy building reliable test suites.'], notes: [] });
     expect(d.headline.length).toBeLessThanOrEqual(220);
