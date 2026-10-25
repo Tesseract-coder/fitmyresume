@@ -1,5 +1,13 @@
+import '@fontsource/carlito/latin-400.css';
+import '@fontsource/carlito/latin-700.css';
+import '@fontsource/carlito/latin-400-italic.css';
+import '@fontsource/source-serif-4/latin-400.css';
+import '@fontsource/source-serif-4/latin-700.css';
+import '@fontsource/source-serif-4/latin-400-italic.css';
+import type { CSSProperties, ReactNode } from 'react';
 import { SECTION_HEADINGS, contactLines, dateRange } from '@shared/resume-text';
 import type { ResumeJSON } from '@shared/schema';
+import { FONTS } from '@/lib/export/fonts';
 import { THEMES, TEMPLATES, type ExportPrefs } from '@/lib/export/theme';
 
 /** HTML mirror of the PDF/DOCX layout for the live preview (always light, like paper). */
@@ -7,24 +15,47 @@ export function ResumePreview({ resume, prefs }: { resume: ResumeJSON; prefs: Ex
   const t = TEMPLATES[prefs.template];
   const c = THEMES[prefs.theme];
   const scale = 1.333; // pt → px
-  const H = ({ title }: { title: string }) => (
-    <h3 style={{ color: c.heading, fontSize: t.headingSize * scale, marginTop: t.sectionGap * scale, borderBottom: `1px solid ${c.accent}`, letterSpacing: t.upperHeadings ? 0.5 : 0 }} className="mb-1 pb-0.5 font-bold">
-      {t.upperHeadings ? title.toUpperCase() : title}
-    </h3>
+  const px = (n: number) => n * scale;
+  const headingFont = FONTS[t.headingFont].css;
+
+  const H = ({ title }: { title: string }) => {
+    const style: CSSProperties = {
+      color: t.headingStyle === 'plain' ? c.accent : c.heading,
+      fontFamily: headingFont,
+      fontSize: px(t.headingSize),
+      letterSpacing: px(t.tracking),
+      marginTop: px(t.sectionGap),
+      marginBottom: px(3),
+      ...(t.headingStyle === 'rule' ? { borderBottom: `1px solid ${c.accent}`, paddingBottom: 2 } : {}),
+      ...(t.headingStyle === 'overline' ? { borderTop: `1px solid ${c.accent}`, paddingTop: 4 } : {}),
+      ...(t.headingStyle === 'bar' ? { borderLeft: `${px(3.5)}px solid ${c.accent}`, paddingLeft: px(6) } : {}),
+    };
+    return (
+      <h3 style={style} className="font-bold">
+        {t.upperHeadings ? title.toUpperCase() : title}
+      </h3>
+    );
+  };
+  const TwoSide = ({ left, right }: { left: ReactNode; right: string }) => (
+    <div className="flex flex-wrap justify-between gap-x-3">
+      <span>{left}</span>
+      <span style={{ color: c.muted }}>{right}</span>
+    </div>
   );
+
   return (
     <article
       aria-label="Resume preview"
       className="mx-auto w-full max-w-[816px] bg-white text-left shadow-lg ring-1 ring-black/5"
-      style={{ padding: t.margin * scale * 0.8, fontFamily: 'Carlito, Calibri, Arial, sans-serif', fontSize: t.bodySize * scale, color: c.text, lineHeight: 1.3 }}
+      style={{ padding: px(t.margin) * 0.8, fontFamily: FONTS[t.bodyFont].css, fontSize: px(t.bodySize), color: c.text, lineHeight: t.lineHeight + 0.2 }}
     >
-      <header style={{ textAlign: t.centeredHeader ? 'center' : 'left' }}>
-        <div style={{ color: c.heading, fontSize: t.nameSize * scale }} className="font-bold leading-tight">
+      <header style={{ textAlign: t.centeredHeader ? 'center' : 'left', ...(t.headerRule !== 'none' ? { borderBottom: `${t.headerRule === 'thick' ? 3 : 1}px solid ${c.accent}`, paddingBottom: px(5) } : {}) }}>
+        <div style={{ color: t.nameAccent ? c.accent : c.heading, fontSize: px(t.nameSize), fontFamily: headingFont, letterSpacing: px(t.tracking / 2) }} className="font-bold leading-tight">
           {resume.contact.name}
         </div>
-        {resume.headline && <div style={{ color: c.muted, fontSize: (t.bodySize + 1.5) * scale }}>{resume.headline}</div>}
+        {resume.headline && <div style={{ color: c.muted, fontSize: px(t.bodySize + 1.5) }}>{resume.headline}</div>}
         {contactLines(resume).map((l) => (
-          <div key={l} style={{ fontSize: (t.bodySize - 1) * scale }} className="break-words">
+          <div key={l} style={{ fontSize: px(t.bodySize - 1) }} className="break-words">
             {l}
           </div>
         ))}
@@ -41,7 +72,7 @@ export function ResumePreview({ resume, prefs }: { resume: ResumeJSON; prefs: Ex
           {resume.skills.map((g) => (
             <p key={g.group}>
               <b style={{ color: c.heading }}>{g.group}: </b>
-              {g.items.join(', ')}
+              {g.items.join(t.skillSeparator)}
             </p>
           ))}
         </section>
@@ -49,42 +80,55 @@ export function ResumePreview({ resume, prefs }: { resume: ResumeJSON; prefs: Ex
       {resume.experience.length > 0 && (
         <section>
           <H title={SECTION_HEADINGS.experience} />
-          {resume.experience.map((r) => (
-            <div key={r.id} className="mb-1.5">
-              <div className="flex flex-wrap justify-between gap-x-3">
-                <span>
-                  <b>{r.title}</b> | <b style={{ color: c.accent }}>{r.company}</b>
-                  {r.location && <span style={{ color: c.muted }}> | {r.location}</span>}
-                </span>
-                <span style={{ color: c.muted }}>{dateRange(r.startDate, r.endDate)}</span>
-              </div>
-              <ul className="list-disc pl-5">
-                {r.bullets.map((b) => (
-                  <li key={b.id}>{b.text}</li>
+          {resume.experience.map((r) => {
+            const company = <b style={{ color: c.accent }}>{r.company}</b>;
+            const location = r.location && <span style={{ color: c.muted }}> | {r.location}</span>;
+            return (
+              <div key={r.id} className="mb-1.5">
+                {t.roleLayout === 'stacked' ? (
+                  <>
+                    <TwoSide left={<b>{r.title}</b>} right={dateRange(r.startDate, r.endDate)} />
+                    <div>
+                      {company}
+                      {location}
+                    </div>
+                  </>
+                ) : (
+                  <TwoSide
+                    left={
+                      <>
+                        <b>{r.title}</b> | {company}
+                        {location}
+                      </>
+                    }
+                    right={dateRange(r.startDate, r.endDate)}
+                  />
+                )}
+                <ul className="list-disc pl-5">
+                  {r.bullets.map((b) => (
+                    <li key={b.id}>{b.text}</li>
+                  ))}
+                </ul>
+                {r.projects?.map((p, i) => (
+                  <div key={i}>
+                    <i style={{ color: c.muted }}>{[p.name && `Project: ${p.name}`, p.client && `Client: ${p.client}`].filter(Boolean).join(' | ')}</i>
+                    <ul className="list-disc pl-5">
+                      {p.bullets.map((b) => (
+                        <li key={b.id}>{b.text}</li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
-              {r.projects?.map((p, i) => (
-                <div key={i}>
-                  <i style={{ color: c.muted }}>{[p.name && `Project: ${p.name}`, p.client && `Client: ${p.client}`].filter(Boolean).join(' | ')}</i>
-                  <ul className="list-disc pl-5">
-                    {p.bullets.map((b) => (
-                      <li key={b.id}>{b.text}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </section>
       )}
       {resume.education.length > 0 && (
         <section>
           <H title={SECTION_HEADINGS.education} />
           {resume.education.map((e, i) => (
-            <div key={i} className="flex flex-wrap justify-between gap-x-3">
-              <span>{[e.degree, e.institution, e.location, e.gpa && `GPA: ${e.gpa}`].filter(Boolean).join(' | ')}</span>
-              <span style={{ color: c.muted }}>{dateRange(e.startDate, e.endDate)}</span>
-            </div>
+            <TwoSide key={i} left={[e.degree, e.institution, e.location, e.gpa && `GPA: ${e.gpa}`].filter(Boolean).join(' | ')} right={dateRange(e.startDate, e.endDate)} />
           ))}
         </section>
       )}

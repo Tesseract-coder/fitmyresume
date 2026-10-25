@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router';
 import { renderPlainText } from '@shared/resume-text';
 import { PageTitle } from '@/components/Layout';
 import { ResumePreview } from '@/components/ResumePreview';
+import { TemplateThumb } from '@/components/TemplateThumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 import { useDerived } from '@/lib/derived';
 import { downloadBlob } from '@/lib/export/download';
-import { THEMES, TEMPLATES, exportFileName, type TemplateId, type ThemeId } from '@/lib/export/theme';
+import { THEMES, TEMPLATES, exportFileName, safePrefs, type TemplateId, type ThemeId } from '@/lib/export/theme';
 import { saveVersion } from '@/lib/history';
 import { useStore } from '@/lib/store';
 
@@ -26,7 +27,7 @@ export default function Export() {
   const [saved, setSaved] = useState(false);
   if (!final) return null;
 
-  const prefs = s.exportPrefs;
+  const prefs = safePrefs(s.exportPrefs);
   const setPrefs = (patch: Partial<typeof prefs>) => update({ exportPrefs: { ...prefs, ...patch } });
   const fileName = (ext: Format) => exportFileName(final.contact.name, s.jd?.company, ext);
 
@@ -82,18 +83,23 @@ export default function Export() {
               <CardTitle>Template</CardTitle>
             </CardHeader>
             <CardContent>
-              <fieldset className="grid gap-2">
+              <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
                 <legend className="sr-only">Template</legend>
                 {(Object.keys(TEMPLATES) as TemplateId[]).map((id) => (
-                  <label key={id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-subtle px-3 py-2 has-[:checked]:border-teal-600 has-[:checked]:bg-teal-600/5">
-                    <input type="radio" name="template" checked={prefs.template === id} onChange={() => setPrefs({ template: id })} className="size-4 accent-teal-600" />
+                  <label key={id} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-lg border border-subtle p-2 has-[:checked]:border-teal-600 has-[:checked]:bg-teal-600/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[var(--ring)]">
+                    <input type="radio" name="template" checked={prefs.template === id} onChange={() => setPrefs({ template: id })} className="peer sr-only" />
+                    <TemplateThumb t={TEMPLATES[id]} c={THEMES[prefs.theme]} />
                     <span className="text-sm">
-                      <span className="font-medium">{TEMPLATES[id].label}</span>
-                      <span className="block text-xs text-muted">{TEMPLATES[id].description}</span>
+                      <span className="flex items-center gap-1 font-medium">
+                        {TEMPLATES[id].label}
+                        {prefs.template === id && <Check className="size-3.5 text-teal-600" aria-hidden="true" />}
+                      </span>
+                      <span className="block text-xs leading-snug text-muted">{TEMPLATES[id].description}</span>
                     </span>
                   </label>
                 ))}
               </fieldset>
+              <p className="mt-2 text-xs text-muted">Every template is single-column with standard headings, so ATS parsers read them all the same way.</p>
             </CardContent>
           </Card>
 

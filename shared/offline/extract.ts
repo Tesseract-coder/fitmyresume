@@ -197,6 +197,8 @@ function parseExperience(lines: string[]): RoleDraft[] {
   const roles: RoleDraft[] = [];
   let pending: string[] = [];
   let lastWasBullet = false;
+  /** Header parts of the newest role while it still lacks a title or company (stacked layouts). */
+  let incomplete: { parts: string[]; start: string; end: string } | undefined;
   const target = () => {
     const role = roles.at(-1)!;
     return role.projects?.at(-1)?.bullets ?? role.bullets;
@@ -209,11 +211,22 @@ function parseExperience(lines: string[]): RoleDraft[] {
       const rest = collapseSpace(line.replace(range[0], ' ').replace(/[|,–—-]\s*$/, '').replace(/^\s*[|,–—-]/, ''));
       // Full sentences waiting in `pending` are glyph-less bullets of the previous role, not header lines.
       while (roles.length && pending.length && isSentence(pending[0]!)) target().push(pending.shift()!);
-      roles.push(buildRole([...pending, rest].filter(Boolean), range[1]!, range[2]!));
+      const parts = [...pending, rest].filter(Boolean);
+      const role = buildRole(parts, range[1]!, range[2]!);
+      roles.push(role);
+      incomplete = role._uncertain ? { parts, start: range[1]!, end: range[2]! } : undefined;
       pending = [];
       lastWasBullet = false;
       continue;
     }
+    // "Title      Jan 2021 – Present" then "Company | Location": the line right after the dates completes the header.
+    if (incomplete && !isBullet && line.length <= 80 && !isSentence(line)) {
+      const role = buildRole([...incomplete.parts, line], incomplete.start, incomplete.end);
+      roles[roles.length - 1] = { ...role, bullets: roles.at(-1)!.bullets };
+      incomplete = undefined;
+      continue;
+    }
+    incomplete = undefined;
     if (!roles.length) {
       pending.push(line);
       continue;

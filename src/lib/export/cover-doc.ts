@@ -1,6 +1,7 @@
 import { AlignmentType, BorderStyle, Document, Packer, Paragraph, TextRun } from 'docx';
 import type { ComposedLetter } from '@shared/cover';
-import { PDF_FONT, type PdfNode } from './pdf-doc';
+import { FONTS } from './fonts';
+import type { PdfNode } from './pdf-doc';
 import { THEMES, TEMPLATES, type ExportPrefs } from './theme';
 
 /**
@@ -15,7 +16,7 @@ export function buildCoverPdfDefinition(letter: ComposedLetter, prefs: ExportPre
   const c = THEMES[prefs.theme];
   const align = t.centeredHeader ? 'center' : 'left';
   const content: PdfNode[] = [
-    { text: letter.name, fontSize: t.nameSize, bold: true, color: c.heading, alignment: align },
+    { text: letter.name, font: FONTS[t.headingFont].pdf, fontSize: t.nameSize, bold: true, color: t.nameAccent ? c.accent : c.heading, alignment: align, characterSpacing: t.tracking / 2 },
     ...letter.contact.map((line): PdfNode => ({ text: line, fontSize: LETTER_BODY_SIZE - 1.5, alignment: align, margin: [0, 2, 0, 0] })),
     { canvas: [{ type: 'line', x1: 0, y1: 6, x2: PAGE_WIDTH - 2 * t.margin, y2: 6, lineWidth: 0.75, lineColor: c.accent }], margin: [0, 0, 0, 18] },
     { text: letter.date, margin: [0, 0, 0, 14] },
@@ -28,7 +29,7 @@ export function buildCoverPdfDefinition(letter: ComposedLetter, prefs: ExportPre
     pageSize: 'LETTER',
     pageMargins: [Math.max(t.margin, 54), Math.max(t.margin, 54), Math.max(t.margin, 54), Math.max(t.margin, 54)],
     info: { title: `${letter.name} — Cover Letter`, author: letter.name, subject: 'Cover Letter' },
-    defaultStyle: { font: PDF_FONT, fontSize: LETTER_BODY_SIZE, color: c.text, lineHeight: 1.15 },
+    defaultStyle: { font: FONTS[t.bodyFont].pdf, fontSize: LETTER_BODY_SIZE, color: c.text, lineHeight: 1.15 },
     content,
   };
 }
@@ -42,7 +43,7 @@ export function buildCoverDocx(letter: ComposedLetter, prefs: ExportPrefs): Docu
   const para = (text: string, after = 200, run: Partial<{ bold: boolean; color: string }> = {}) => new Paragraph({ spacing: { after, line: 300 }, children: [new TextRun({ text, ...run })] });
 
   const children = [
-    new Paragraph({ alignment: align, children: [new TextRun({ text: letter.name, bold: true, size: t.nameSize * 2, color: hex(c.heading) })] }),
+    new Paragraph({ alignment: align, children: [new TextRun({ text: letter.name, bold: true, font: FONTS[t.headingFont].docx, size: t.nameSize * 2, color: hex(t.nameAccent ? c.accent : c.heading) })] }),
     ...letter.contact.map((line, i) =>
       new Paragraph({
         alignment: align,
@@ -59,7 +60,7 @@ export function buildCoverDocx(letter: ComposedLetter, prefs: ExportPrefs): Docu
   return new Document({
     creator: letter.name,
     title: `${letter.name} — Cover Letter`,
-    styles: { default: { document: { run: { font: 'Calibri', size: LETTER_BODY_SIZE * 2, color: hex(c.text) } } } },
+    styles: { default: { document: { run: { font: FONTS[t.bodyFont].docx, size: LETTER_BODY_SIZE * 2, color: hex(c.text) } } } },
     sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: margin, bottom: margin, left: margin, right: margin } } }, children }],
   });
 }

@@ -9,20 +9,23 @@ import { SECTION_HEADINGS, renderPlainText } from '../shared/resume-text';
 import { DEFAULT_COVER_OPTIONS, composeCoverLetter, type CoverLetterDraft } from '../shared/cover';
 import { buildCoverDocx, buildCoverPdfDefinition } from '../src/lib/export/cover-doc';
 import { buildDocx } from '../src/lib/export/docx';
-import { PDF_FONT, PDF_FONT_FILES, buildPdfDefinition } from '../src/lib/export/pdf-doc';
-import { TEMPLATES, THEMES, exportFileName, type TemplateId, type ThemeId } from '../src/lib/export/theme';
+import { FONTS, FONT_SOURCES, STYLE_FILES } from '../src/lib/export/fonts';
+import { buildPdfDefinition } from '../src/lib/export/pdf-doc';
+import { TEMPLATES, THEMES, exportFileName, type FontId, type TemplateId, type ThemeId } from '../src/lib/export/theme';
 import { pdfToText, type PdfJsLike } from '../src/lib/parse/pdf-core';
 import { SAMPLES } from './fixtures/samples';
 import { pythonQa } from './fixtures/resumes';
 
 const require = createRequire(import.meta.url);
 const pdfmake = require('pdfmake');
-const font = (f: string) => fs.readFileSync(require.resolve(`@fontsource/carlito/files/carlito-latin-${f}.woff`));
-pdfmake.virtualfs.writeFileSync(PDF_FONT_FILES.normal, font('400-normal'));
-pdfmake.virtualfs.writeFileSync(PDF_FONT_FILES.bold, font('700-normal'));
-pdfmake.virtualfs.writeFileSync(PDF_FONT_FILES.italics, font('400-italic'));
-pdfmake.virtualfs.writeFileSync(PDF_FONT_FILES.bolditalics, font('700-italic'));
-pdfmake.addFonts({ [PDF_FONT]: { ...PDF_FONT_FILES } });
+// Register every font family a template can use, exactly as the browser loader does.
+for (const id of Object.keys(FONTS) as FontId[]) {
+  const f = FONTS[id];
+  for (const style of Object.keys(f.files) as (keyof typeof f.files)[]) {
+    pdfmake.virtualfs.writeFileSync(f.files[style], fs.readFileSync(require.resolve(`@fontsource/${FONT_SOURCES[id]}-latin-${STYLE_FILES[style]}.woff`)));
+  }
+  pdfmake.addFonts({ [f.pdf]: { ...f.files } });
+}
 pdfmake.setUrlAccessPolicy(() => false);
 pdfmake.setLocalAccessPolicy(() => false);
 
@@ -90,6 +93,33 @@ describe('DOCX export', () => {
   it('classic template uses uppercase headings', async () => {
     const { value } = await mammoth.extractRawText({ buffer: await Packer.toBuffer(buildDocx(pythonQa, { template: 'classic', theme: 'black' })) });
     expect(value).toContain('PROFESSIONAL EXPERIENCE');
+  });
+});
+
+describe('templates and themes', () => {
+  it.each(Object.keys(TEMPLATES) as TemplateId[])('%s DOCX: real bullets, body contact, standard headings, no tables', async (template) => {
+    const buf = await Packer.toBuffer(buildDocx(pythonQa, { template, theme: 'navy' }));
+    const { value: html } = await mammoth.convertToHtml({ buffer: buf });
+    expect(html).not.toMatch(/<table|<img/);
+    expect(html).toContain(`<li>${pythonQa.experience[0]!.bullets[0]!.text.replace(/&/g, '&amp;')}</li>`);
+    expect(html).toContain(`Email: ${pythonQa.contact.email}`);
+    for (const h of Object.values(SECTION_HEADINGS)) expect(html.toLowerCase()).toContain(h.toLowerCase());
+    // Re-importing our own DOCX works for every layout.
+    const { value: text } = await mammoth.extractRawText({ buffer: buf });
+    expect(heuristicExtract(text).experience.map((r) => [r.title, r.company])).toEqual(pythonQa.experience.map((r) => [r.title, r.company]));
+  });
+
+  it('heading letter-spacing stays ≤ 1pt (wider spacing extracts as "P R O F I L E")', () => {
+    for (const t of Object.values(TEMPLATES)) expect(t.tracking, t.id).toBeLessThanOrEqual(1);
+  });
+
+  it('every theme colour used for text has WCAG AA contrast on white', () => {
+    const lum = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+    };
+    const contrast = (hex: string) => 1.05 / (lum(hex) + 0.05);
+    for (const t of Object.values(THEMES)) for (const k of ['heading', 'accent', 'text', 'muted'] as const) expect(contrast(t[k]), `${t.id}.${k}`).toBeGreaterThanOrEqual(4.5);
   });
 });
 

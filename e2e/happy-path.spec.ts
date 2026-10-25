@@ -79,3 +79,14 @@ test('the session survives a reload (IndexedDB)', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Review the changes' })).toBeVisible();
   expect(await score(page, 'After')).toBe(after);
 });
+
+test('every template exports a PDF in the browser (fonts load on demand)', async ({ page }) => {
+  await toReview(page);
+  await page.getByRole('button', { name: /Continue to export/ }).click();
+  for (const name of ['Elegant', 'Minimal', 'Bold', 'Executive']) {
+    await page.getByRole('radio', { name: new RegExp(`^${name}`) }).check({ force: true });
+    await expect(page.getByRole('article', { name: 'Resume preview' })).toBeVisible();
+    const pdf = await download(page, 'PDF');
+    expect(pdf.data.subarray(0, 5).toString(), name).toBe('%PDF-');
+  }
+});

@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input, Label, Textarea } from '@/components/ui/field';
 import { useDerived } from '@/lib/derived';
 import { downloadBlob } from '@/lib/export/download';
-import { THEMES, exportFileName } from '@/lib/export/theme';
+import { THEMES, exportFileName, safePrefs } from '@/lib/export/theme';
 import { engine } from '@/lib/engine';
 import { useStore } from '@/lib/store';
 
@@ -66,7 +66,7 @@ export default function CoverLetter() {
   };
 
   const letter = draft ? composeCoverLetter(final, draft) : undefined;
-  const prefs = s.exportPrefs;
+  const prefs = safePrefs(s.exportPrefs);
   const theme = THEMES[prefs.theme];
   const fileName = (ext: Format) => exportFileName(final.contact.name, jd.company, ext, 'Cover_Letter');
   const blocked = draft?.violations.filter((v) => v.action !== 'warned').length ?? 0;
